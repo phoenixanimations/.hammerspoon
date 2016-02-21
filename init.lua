@@ -193,38 +193,50 @@ function round(num, idp)
   return tonumber(string.format("%." .. (idp or 0) .. "f", num))
 end
 
+
+hs.hotkey.bind({"ctrl","alt","cmd"}, "b", function ()
+    hs.alert.show(
+        "Percent: " .. tostring(hs.battery.percentage()) ..
+        "\nTime Remaining: " .. "Hours: " .. round(hs.battery.timeRemaining()/60,2) ..
+        "\nCondition: " .. tostring(hs.battery.health()) ..
+        "\nVolts: " .. tostring(hs.battery.voltage()) .. 
+        "\nWalts: " .. tostring(hs.battery.watts())) 
+    hs.notify.new({title="Battery", informativeText="Percent: ",soundName = "Glass.aiff", hasActionButton = false})
+	end)
+
 local Text = ""
+local ChargeCondition = ""
 
-hs.hotkey.bind({}, "f12", function () 
-    -- hs.alert.show(
-    --     "Percent: " .. tostring(hs.battery.percentage()) ..
-    --     "\nTime Remaining: " .. "Hours: " .. round(hs.battery.timeRemaining()/60,2) ..
-    --     "\nCondition: " .. tostring(hs.battery.health()) ..
-    --     "\nVolts: " .. tostring(hs.battery.voltage()) .. 
-    --     "\nWalts: " .. tostring(hs.battery.watts())) 
-    -- hs.notify.new({title="Battery", informativeText="Percent: ",soundName = "Glass.aiff", hasActionButton = false})
-    
+function ChangeChargeMessage (a,b, message)
+	if hs.battery.percentage() >= a and hs.battery.percentage() < b then ChargeCondition = message end
+end
 
-    -- CheckBatteryPercent ()
+hs.hotkey.bind({}, "f12", function () 	
+
+	if hs.battery.isCharging() then 
+		if hs.battery.percentage() == 100 then ChargeCondition = "Set me free" end
+		ChangeChargeMessage (90,100,"Almost there")
+		ChangeChargeMessage (50,90,"Climbing to the top")
+		ChangeChargeMessage (30,50,"Feeling a little better")
+		ChangeChargeMessage (10,30,"I saw the tunnel")
+		ChangeChargeMessage (0,10,"Jesus that was close")
+	end
+
+	if not hs.battery.isCharging() then 
+		if hs.battery.percentage() == 100 then ChargeCondition = "Let me be free" end
+		ChangeChargeMessage (90,100,"What a nice time I'm having")
+		ChangeChargeMessage (80,90,"I don't understand empathy")
+		ChangeChargeMessage (50,80,"How low can I go?")
+		ChangeChargeMessage (30,50,"You don't have to trap me again")
+		ChangeChargeMessage (10,30,"Just a flesh wound")
+		ChangeChargeMessage (0,10,"I hope one day I wake up")
+	end
 
     Text = "Percent: " .. tostring(hs.battery.percentage()) ..
-				 "\nCondition: " .. tostring(hs.battery.health())
-    BatteryCharged()
+		   "\nCondition: " .. tostring(ChargeCondition)
 
+    hs.notify.new({title="Battery", informativeText=Text, hasActionButton = false}):send()
     end)
-
- function BatteryLow()
-	hs.notify.new({title="Battery", informativeText=Text,soundName = "Glass.aiff", hasActionButton = false}):send()
-end
-
-function BatteryCharged()
-    	hs.notify.new({title="Battery", informativeText=Text,soundName = "Reprise.aiff", hasActionButton = false}):send()
-end
-
-function CheckBatteryPercent ()
-   	if hs.battery.percentage() < 30 then BatteryLow() end
-	if hs.battery.percentage() >= 30 then BatteryCharged() end
-end
 
 --Spaces:
 local killallDock = false
