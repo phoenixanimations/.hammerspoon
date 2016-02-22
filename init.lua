@@ -218,7 +218,8 @@ hs.hotkey.bind({}, "f12", function ()
 		ChangeChargeMessage (90,100,"Almost there")
 		ChangeChargeMessage (50,90,"Climbing to the top")
 		ChangeChargeMessage (30,50,"Feeling a little better")
-		ChangeChargeMessage (10,30,"I saw the tunnel")
+        ChangeChargeMessage (20,30,"Started at the bottom, still at the bottom")
+		ChangeChargeMessage (10,20,"I saw the tunnel")
 		ChangeChargeMessage (0,10,"Jesus that was close")
 	end
 
@@ -227,9 +228,14 @@ hs.hotkey.bind({}, "f12", function ()
 		ChangeChargeMessage (90,100,"What a nice time I'm having")
 		ChangeChargeMessage (80,90,"I don't understand empathy")
 		ChangeChargeMessage (50,80,"How low can I go?")
-		ChangeChargeMessage (30,50,"You don't have to trap me again")
+		ChangeChargeMessage (45,50,"Maybe plug me in for a little bit?")
+        ChangeChargeMessage (30,45,"I'm having a good time")
 		ChangeChargeMessage (10,30,"Just a flesh wound")
-		ChangeChargeMessage (0,10,"I hope one day I wake up")
+        ChangeChargeMessage (6,10,"Goodbye cruel world")
+        ChangeChargeMessage (4,6,"Hello darkness my old friend")
+        ChangeChargeMessage (3,4,"Dreams in which I'm dying")
+        ChangeChargeMessage (2,3,"Are the best I've ever had")
+        ChangeChargeMessage (0,2,"I hope one day I wake up")
 	end
 
     Text = "Percent: " .. tostring(hs.battery.percentage()) ..
