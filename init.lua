@@ -319,7 +319,7 @@ local IsRedshiftOn = true
 hs.hotkey.bind({"ctrl","alt","cmd"},'f1',function () 
         IsRedshiftOn = not IsRedshiftOn     
         if (IsRedshiftOn)
-            then hs.redshift.start(2800,'21:00','7:00','4h',fasle,wfRedshift)
+            then hs.redshift.start(2800,'21:00','7:00','4h',false,wfRedshift)
         else  hs.redshift.stop()
         end
         hs.alert.show('Redshift: '..tostring(IsRedshiftOn)) 
