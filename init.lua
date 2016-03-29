@@ -310,7 +310,7 @@ function LoadDesktops (Number)
 end
 
 function LoadFourDesktops ()
-	LoadDesktops(4)
+	LoadDesktops(2)
 end
 
 -- Redshift:
