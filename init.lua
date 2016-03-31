@@ -5,7 +5,6 @@ hs.window.animationDuration = 0
 
 --iPad
 local function duet (watcher)
-	hs.alert.show(tostring(hs.inspect(watcher)))
 	if watcher.productName == "iPad" and watcher.eventType == "added" then
 		hs.application.open("duet")
 	end 
@@ -72,6 +71,19 @@ local function AdjustCenterTop(w, h, y)
   end
 end
 
+local function SetWindow (w,h,x,y)
+	return function ()
+	    local win = hs.window.focusedWindow()
+	    if not win then return end
+	    local f = win:frame()
+	    f.w = w
+	    f.h = h
+	    f.x = x
+	    f.y = y
+	    win:setFrame(f)
+	end
+end
+
 -- top half
 hs.hotkey.bind({"ctrl","alt","cmd"}, "up", Adjust(0, 0, 1, 0.5))
 
@@ -99,7 +111,8 @@ hs.hotkey.bind({"ctrl","alt","cmd","shift"}, "left", Adjust(0, 0.5, 0.5, 0.5))
 -- fullscreen
 hs.hotkey.bind({"ctrl","alt","cmd"}, "1", AdjustCenterTop(.5, .5,200))
 hs.hotkey.bind({"ctrl","alt","cmd"}, "2", AdjustCenterTop(.75, .75,120))
-hs.hotkey.bind({"ctrl","alt","cmd"}, "3", AdjustCenterTop(1, 1,0))
+hs.hotkey.bind({"ctrl","alt","cmd"}, "3", SetWindow(1024,768,200,70))
+hs.hotkey.bind({"ctrl","alt","cmd"}, "4", AdjustCenterTop(1, 1,0))
 
 --Nudge Mode by Mattvh:
 --http://github.com/mattvh
