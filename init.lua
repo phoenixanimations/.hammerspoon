@@ -2,6 +2,42 @@
 spaces = require("hs._asm.undocumented.spaces")
 --Configs:
 hs.window.animationDuration = 0
+
+--iPad
+local function duet (watcher)
+	hs.alert.show(tostring(hs.inspect(watcher)))
+	if watcher.productName == "iPad" and watcher.eventType == "added" then
+		hs.application.open("duet")
+	end 
+
+	if watcher.productName == "iPad" and watcher.eventType == "removed" then 
+		if hs.application.get("duet") ~= nil then
+			hs.application.get("duet"):kill()
+		end	
+	end
+end
+
+hs.usb.watcher.new(duet):start()
+
+--iTunes
+local iTunesHotKeysOn = false
+hs.hotkey.bind({"ctrl","alt","cmd"},"m", function ()
+	iTunesHotKeysOn = not iTunesHotKeysOn
+    hs.alert.show("iTunes Hotkeys: "..tostring(iTunesHotKeysOn))
+	end)
+
+hs.hotkey.bind({},"f7", function ()
+	hs.itunes.previous()
+	end)
+
+hs.hotkey.bind({},"f8", function ()
+	hs.itunes.playpause()
+	end)
+
+hs.hotkey.bind({},"f9", function ()
+	hs.itunes.next()
+	end)
+
 --Window management:
 local function Adjust(x, y, w, h)
   return function()
@@ -226,7 +262,8 @@ hs.hotkey.bind({}, "f12", function ()
 	if not hs.battery.isCharging() then 
 		if hs.battery.percentage() == 100 then ChargeCondition = "Let me be free" end
 		ChangeChargeMessage (90,100,"What a nice time I'm having")
-		ChangeChargeMessage (80,90,"I don't understand empathy")
+		ChangeChargeMessage (88,90,"I don't understand empathy")
+		ChangeChargeMessage (80,88,"I found a quarter")
 		ChangeChargeMessage (50,80,"How low can I go?")
 		ChangeChargeMessage (45,50,"Maybe plug me in for a little bit?")
         ChangeChargeMessage (30,45,"I'm having a good time")
@@ -243,6 +280,22 @@ hs.hotkey.bind({}, "f12", function ()
 
     hs.notify.new({title="Battery", informativeText=Text, hasActionButton = false}):send()
     end)
+
+--------------------------------------------------
+-- Handler directly called by the "low-level" watcher API.
+--------------------------------------------------
+pct_prev = nil
+function batt_watch_low()
+    pct = hs.battery.percentage()
+    if pct ~= pct_prev and not hs.battery.isCharging() and pct < 30 then
+        hs.alert.show(string.format(
+        "Plug-in the power, only %d%% left!!", pct))
+    end
+    pct_prev = pct
+end
+--------------------------------------------------
+
+hs.battery.watcher.new(batt_watch_low):start()
 
 --Spaces:
 local killallDock = false
