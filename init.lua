@@ -282,7 +282,7 @@ hs.hotkey.bind({}, "f12", function ()
     end)
 
 --------------------------------------------------
--- Handler directly called by the "low-level" watcher API.
+-- Handler directly called by the "low-level" watcher API. marksantcroos 
 --------------------------------------------------
 pct_prev = nil
 function batt_watch_low()
