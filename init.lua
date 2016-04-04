@@ -25,16 +25,8 @@ hs.hotkey.bind({"ctrl","alt","cmd"},"m", function ()
     hs.alert.show("iTunes Hotkeys: "..tostring(iTunesHotKeysOn))
 	end)
 
-hs.hotkey.bind({},"f7", function ()
-	hs.itunes.previous()
-	end)
-
 hs.hotkey.bind({},"f8", function ()
 	hs.itunes.playpause()
-	end)
-
-hs.hotkey.bind({},"f9", function ()
-	hs.itunes.next()
 	end)
 
 --Window management:
