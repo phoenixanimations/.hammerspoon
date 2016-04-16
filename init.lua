@@ -26,8 +26,10 @@ hs.hotkey.bind({"ctrl","alt","cmd"},"m", function ()
 	end)
 
 hs.hotkey.bind({},"f8", function ()
-	hs.itunes.playpause()
-	end)
+	if (iTunesHotKeysOn) then
+		hs.itunes.playpause()
+	end
+end)
 
 --Window management:
 local function Adjust(x, y, w, h)
