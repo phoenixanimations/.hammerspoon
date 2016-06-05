@@ -288,22 +288,6 @@ hs.hotkey.bind({}, "f12", function ()
     hs.notify.new({title="Battery", informativeText=Text, hasActionButton = false}):send()
     end)
 
---------------------------------------------------
--- Handler directly called by the "low-level" watcher API. marksantcroos 
---------------------------------------------------
-pct_prev = nil
-function batt_watch_low()
-    pct = hs.battery.percentage()
-    if pct ~= pct_prev and not hs.battery.isCharging() and pct < 30 then
-        hs.alert.show(string.format(
-        "Plug-in the power, only %d%% left!!", pct))
-    end
-    pct_prev = pct
-end
---------------------------------------------------
-
-hs.battery.watcher.new(batt_watch_low):start()
-
 --Spaces:
 local killallDock = false
 
