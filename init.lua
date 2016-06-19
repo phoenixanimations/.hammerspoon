@@ -3,21 +3,6 @@ spaces = require("hs._asm.undocumented.spaces")
 --Configs:
 hs.window.animationDuration = 0
 
---iPad
-local function duet (watcher)
-	if watcher.productName == "iPad" and watcher.eventType == "added" then
-		hs.application.open("duet")
-	end 
-
-	if watcher.productName == "iPad" and watcher.eventType == "removed" then 
-		if hs.application.get("duet") ~= nil then
-			hs.application.get("duet"):kill()
-		end	
-	end
-end
-
-hs.usb.watcher.new(duet):start()
-
 --iTunes
 local iTunesHotKeysOn = false
 hs.hotkey.bind({"ctrl","alt","cmd"},"m", function ()
