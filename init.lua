@@ -1,3 +1,5 @@
+-- DEBUG: hs.inspect.inspect
+
 --Import:
 spaces = require("hs._asm.undocumented.spaces")
 --Configs:
@@ -216,6 +218,30 @@ hs.hotkey.bind({"ctrl","alt","cmd"}, "space", function ()
 	hs.hints.windowHints()
 end)
 
+--Time: 
+function AddZero (num) --Fix this so you add funny comments
+	if (num < 10) then
+		return "0" .. tostring(num) .. " ah yeah!"
+	end
+
+	if (num % 10) == 0 then
+		return tostring(num) .. " woo!"
+	end
+	
+	return num .. " 'oclock"
+end
+
+--Maybe seperate time from battery check so you can write funny comments.
+function Time ()
+	local hour = (os.date("*t"))["hour"]
+	local min = (os.date("*t"))["min"]
+	local day = (os.date("*t"))["day"]
+	local month = (os.date("*t"))["month"]
+	local year = (os.date("*t"))["year"]
+	
+	return "Time: " .. hour .. ":" .. AddZero(min) --.. " Date: " .. AddZero(day) .. "." .. AddZero(month) .. "." .. year
+end
+
 --Battery:
 function round(num, idp)
   return tonumber(string.format("%." .. (idp or 0) .. "f", num))
@@ -244,7 +270,7 @@ hs.hotkey.bind({}, "f12", function ()
 	if hs.battery.isCharging() then 
 		if hs.battery.percentage() == 100 then ChargeCondition = "Set me free" end
 		ChangeChargeMessage (90,100,"Almost there")
-		ChangeChargeMessage (50,90,"Climbing to the top")
+		ChangeChargeMessage (50,90,"Climbing the mountain of success")
 		ChangeChargeMessage (30,50,"Feeling a little better")
         ChangeChargeMessage (20,30,"Started at the bottom, still at the bottom")
 		ChangeChargeMessage (10,20,"I saw the tunnel")
@@ -267,11 +293,17 @@ hs.hotkey.bind({}, "f12", function ()
         ChangeChargeMessage (0,2,"I hope one day I wake up")
 	end
 
-    Text = "Percent: " .. tostring(hs.battery.percentage()) ..
+	local Percent = "Percent: " .. tostring(hs.battery.percentage())
+
+	if hs.battery.percentage() > 40 then
+		Percent = ""
+	end
+
+    Text =  Percent .. " " .. Time() ..
 		   "\nCondition: " .. tostring(ChargeCondition)
 
     hs.notify.new({title="Battery", informativeText=Text, hasActionButton = false}):send()
-    end)
+end)
 
 --Spaces:
 local killallDock = false
