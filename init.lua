@@ -1,7 +1,6 @@
 -- DEBUG: hs.inspect.inspect
 -- For certain apps you could disable keybindings. 
 -- for i,v in pairs(t) do print(i,v) end
--- Two notifications at once
 -- Show only opened applications 
 -- Motivation button
 --hs.help("")
@@ -310,6 +309,67 @@ end
 
 ----------------------------------------------------------
 ----------------------------------------------------------
+-----------------------Motivation-------------------------
+----------------------------------------------------------
+----------------------------------------------------------
+local MotivationState = 0
+
+function Motivation ()
+	if MotivationState == 0 then Alert("hi")
+	elseif MotivationState == 1 then Alert("Hello")
+	else Alert("what")
+	end
+
+	MotivationState = MotivationState + 1
+	if MotivationState > 3 then MotivationState = 0 end
+end
+
+----------------------------------------------------------
+----------------------------------------------------------
+----------------------Applescript-------------------------
+----------------------------------------------------------
+----------------------------------------------------------
+local HideUnopenAppsState = true
+
+function HideUnopenApps ()
+	if HideUnopenAppsState then 
+		Alert ("Dock: Opened Apps")
+	else 
+		Alert ("Dock: All Apps")
+	end
+
+	local applescriptText = ''
+	
+	if HideUnopenAppsState then
+		applescriptText = 'do shell script "defaults write com.apple.dock static-only -bool TRUE && killall Dock"' 
+	else 
+		applescriptText = 'do shell script "defaults write com.apple.dock static-only -bool FALSE && killall Dock"'
+	end
+	
+	hs.applescript(applescriptText)
+	HideUnopenAppsState = not HideUnopenAppsState
+end
+
+
+local ShowAllFilesState = true
+
+function ShowAllFiles ()
+	Alert ("Show all files = " .. tostring(ShowAllFilesState))
+
+	local applescriptText = ''
+
+	if ShowAllFilesState then 
+		applescriptText = 'do shell script "defaults write com.apple.finder AppleShowAllFiles TRUE && killall Finder"'
+	else
+		applescriptText = 'do shell script "defaults write com.apple.finder AppleShowAllFiles FALSE && killall Finder"'
+	end
+
+	hs.applescript(applescriptText)
+	ShowAllFilesState = not ShowAllFilesState
+end
+
+----------------------------------------------------------
+----------------------------------------------------------
 ----------------------Key Bindings------------------------
 ----------------------------------------------------------
 ----------------------------------------------------------
@@ -360,8 +420,15 @@ hs.hotkey.bind({"ctrl","shift"},"right", RightSpace)
 hs.hotkey.bind({}, "f12", BatteryNotification)
 hs.hotkey.bind({"shift"}, "f12", TimeNotification)
 
+--Motivation
+hs.hotkey.bind(cmdAltCtrl,"m",Motivation)
+
+--Applescript
+hs.hotkey.bind(cmdAltCtrl,"f3",HideUnopenApps)
+hs.hotkey.bind(cmdAltCtrl,"f4",ShowAllFiles)
+
 --Hints
-hs.hotkey.bind(cmdAltCtrl, "f3", hs.hints.windowHints)
+hs.hotkey.bind(cmdAltCtrl, "space", hs.hints.windowHints)
 
 ----------------------------------------------------------
 ----------------------------------------------------------
