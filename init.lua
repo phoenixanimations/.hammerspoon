@@ -1,259 +1,250 @@
 -- DEBUG: hs.inspect.inspect
 -- For certain apps you could disable keybindings. 
+-- for i,v in pairs(t) do print(i,v) end
+-- Two notifications at once
+-- Show only opened applications 
+-- Motivation button
+--hs.help("")
+--Don't forget you have shift + f3 and just f3
+--Maybe re add redshift?
 
---Import:
 spaces = require("hs._asm.undocumented.spaces")
---Configs:
+----------------------------------------------------------
+----------------------------------------------------------
+--------------------------Config--------------------------
+----------------------------------------------------------
+----------------------------------------------------------
 hs.window.animationDuration = 0
+hs.window.setFrameCorrectness = false
 
---Window management:
-local function Adjust(x, y, w, h)
-  return function()
-    local win = hs.window.focusedWindow()
-    if not win then return end
-
-    local f = win:frame()
-    local max = win:screen():frame()
-
-    f.w = math.floor(max.w * w)
-    f.h = math.floor(max.h * h)
-    f.x = math.floor((max.w * x) + max.x)
-    f.y = math.floor((max.h * y) + max.y)
-
-    win:setFrame(f)
-  end
+----------------------------------------------------------
+----------------------------------------------------------
+-----------------------Hammerspoon------------------------
+----------------------------------------------------------
+----------------------------------------------------------
+function Alert (message)
+	hs.alert.show(message)
 end
 
-local function AdjustCenterTop(w, h, y)
-  return function()
-    local win = hs.window.focusedWindow()
-    if not win then return end
-
-    local f = win:frame()
-    local max = win:screen():frame()
-
-    f.w = math.floor(max.w * w)
-    f.h = math.floor(max.h * h)
-    f.x = math.floor((max.w / 2) - (f.w / 2))
-    f.y = max.y + y
-    win:setFrame(f)
-  end
+----------------------------------------------------------
+----------------------------------------------------------
+-------------------------Error----------------------------
+----------------------------------------------------------
+----------------------------------------------------------
+function NullError (object)
+	if not object then 
+		Alert("Object: " .. tostring(object) .. "is null")
+		return true
+	end
+	return false
 end
 
-local function SetWindow (w,h,x,y)
+----------------------------------------------------------
+----------------------------------------------------------
+--------------------Window Manipulation-------------------
+----------------------------------------------------------
+----------------------------------------------------------
+
+----------------------------------------------------------
+--------------------------Null----------------------------
+----------------------------------------------------------
+function NullErrorWindow ()
+	local win = hs.window.focusedWindow()
+	if NullError(win) then return true end
+	return false
+end
+
+----------------------------------------------------------
+--------------------Global Variables----------------------
+----------------------------------------------------------
+function Win ()
+	return hs.window.focusedWindow()
+end
+
+function ScreenFrame ()
+	return Win():screen():frame()
+end
+
+----------------------------------------------------------
+-------------------------Size-----------------------------
+----------------------------------------------------------
+function Adjust (x,y,w,h)
+	if NullErrorWindow () then return end
+	local frame = Win():frame()
+
+	frame.x = x + ScreenFrame().x
+	frame.y = y + ScreenFrame().y
+	frame.w = w
+	frame.h = h
+
+	Win():setFrame(frame)
+end
+
+function SquareWindow (size)
+	Adjust (0,
+			0,
+			ScreenFrame().w * size,
+			ScreenFrame().h * size)
+	Win():centerOnScreen()
+end
+
+----------------------------------------------------------
+------------------Size: hs.hotkey.bind--------------------
+----------------------------------------------------------
+function FullScreen ()
+	Adjust (0,0,ScreenFrame().w,ScreenFrame().h)
+end
+
+local CenterScreenState = 0
+function CenterScreen ()
+	if CenterScreenState == 0 then SquareWindow(.5) end
+	if CenterScreenState == 1 then SquareWindow(.6) end
+	if CenterScreenState == 2 then SquareWindow(.7) end
+	if CenterScreenState == 3 then SquareWindow(.8) end
+	if CenterScreenState == 4 then SquareWindow(.85) end
+	if CenterScreenState == 5 then SquareWindow(.95) end
+
+	CenterScreenState = CenterScreenState + 1
+	if CenterScreenState > 6 then CenterScreenState = 0 end
+end
+
+function HalfWindow (x,y,w,h)
 	return function ()
-	    local win = hs.window.focusedWindow()
-	    if not win then return end
-	    local f = win:frame()
-	    f.w = w
-	    f.h = h
-	    f.x = x
-	    f.y = y
-	    win:setFrame(f)
+		Adjust (x * ScreenFrame().w , y * ScreenFrame().h, w * ScreenFrame().w , h * ScreenFrame().h)
 	end
 end
 
--- top half
-hs.hotkey.bind({"ctrl","alt","cmd"}, "up", Adjust(0, 0, 1, 0.5))
-
--- right half
-hs.hotkey.bind({"ctrl","alt","cmd"}, "right", Adjust(0.5, 0, 0.5, 1))
-
--- bottom half
-hs.hotkey.bind({"ctrl","alt","cmd"}, "down", Adjust(0, 0.5, 1, 0.5))
-
--- left half
-hs.hotkey.bind({"ctrl","alt","cmd"}, "left", Adjust(0, 0, 0.5, 1))
-
--- top left
-hs.hotkey.bind({"ctrl","alt","cmd","shift"}, "up", Adjust(0, 0, 0.5, 0.5))
-
--- top right
-hs.hotkey.bind({"ctrl","alt","cmd","shift"}, "right", Adjust(0.5, 0, 0.5, 0.5))
-
--- bottom right
-hs.hotkey.bind({"ctrl","alt","cmd","shift"}, "down", Adjust(0.5, 0.5, 0.5, 0.5))
-
--- bottom left
-hs.hotkey.bind({"ctrl","alt","cmd","shift"}, "left", Adjust(0, 0.5, 0.5, 0.5))
-
--- fullscreen
-hs.hotkey.bind({"ctrl","alt","cmd"}, "1", AdjustCenterTop(.5, .5,200))
-hs.hotkey.bind({"ctrl","alt","cmd"}, "2", AdjustCenterTop(.75, .75,120))
-hs.hotkey.bind({"ctrl","alt","cmd"}, "3", SetWindow(1024,768,200,70))
-hs.hotkey.bind({"ctrl","alt","cmd"}, "4", AdjustCenterTop(1, 1,0))
-
---Nudge Mode by Mattvh:
---http://github.com/mattvh
-hs.hotkey.bind({"ctrl","alt","cmd"}, "n", function ()
-    local mode = hs.hotkey.modal.new({"ctrl","alt","cmd"}, "n")
-    local modeUIOutline = {}
-
-
-    --
-    -- Enter mode
-    --
-    function mode:entered()
-        hs.alert.show('Nudge Mode: On')
-        local screens = hs.screen.allScreens()
-        for index, screen in pairs(screens) do
-            local id = screen:id()
-            modeUIOutline[id] = hs.drawing.rectangle(screen:frame())
-            modeUIOutline[id]:setStrokeColor({["red"]=155,["blue"]=193,["green"]=226,["alpha"]=0.8})
-            modeUIOutline[id]:setFill(false)
-            modeUIOutline[id]:setStrokeWidth(3)
-            modeUIOutline[id]:show()
-        end
-    end
-
-
-    --
-    -- Exit mode
-    --
-    function mode:exited()
-        for id, outline in pairs(modeUIOutline) do
-            outline:delete()
-            modeUIOutline[id] = nil
-        end
-        hs.alert.show('Nudge Mode: Off')
-    end
-
-
-    --
-    -- Nudge windows
-    --
-    function nudge(x, y)
-
-        local s = hs.screen.mainScreen():frame()
-        local win = hs.window.focusedWindow()
-        local f = win:frame()
-
-        -- Update window frame
-        f.x = f.x + x
-        f.y = f.y + y
-
-        -- Apply changes and snap the window to screen edges
-        win:setFrame(f)
-        win:ensureIsInScreenBounds()
-
-    end
-
-
-    --
-    -- Resize windows
-    --
-    function resize(x, y)
-        local win = hs.window.focusedWindow()
-        local f = win:frame()
-        f.w = f.w + x
-        f.h = f.h + y
-        win:setFrame(f)
-    end
-
-    --
-    -- Keybinds
-    --
-    mode:bind({}, 'escape', function() mode:exit() end)
-    mode:bind({}, 'return', function() mode:exit() end)
-    mode:bind({}, 'space', function() mode:exit() end)
-    
-    mode:bind({'ctrl','alt','shift'}, 'left',  function() nudge(-5, 0) end)
-    mode:bind({'ctrl','alt','shift'}, 'right', function() nudge(5, 0) end)
-    mode:bind({'ctrl','alt','shift'}, 'up',    function() nudge(0, -5) end)
-    mode:bind({'ctrl','alt','shift'}, 'down',  function() nudge(0, 5) end)
-
-    mode:bind({'ctrl','alt'}, 'left', function() nudge(-50, 0) end)
-    mode:bind({'ctrl','alt'}, 'right', function() nudge(50, 0) end)
-    mode:bind({'ctrl','alt'}, 'up', function() nudge(0, -50) end)
-    mode:bind({'ctrl','alt'}, 'down', function() nudge(0, 50) end)
- 	
- 	mode:bind({'alt'}, 'left',  function() resize(-50, 0) end)
-    mode:bind({'alt'}, 'right', function() resize(50, 0) end)
-    mode:bind({'alt'}, 'up',    function() resize(0, -50) end)
-    mode:bind({'alt'}, 'down',  function() resize(0, 50) end)
-
-    mode:bind({'alt','shift'}, 'left',  function() resize(-25, 0) end)
-    mode:bind({'alt','shift'}, 'right', function() resize(25, 0) end)
-    mode:bind({'alt','shift'}, 'up',    function() resize(0, -25) end)
-    mode:bind({'alt','shift'}, 'down',  function() resize(0, 25) end)
-
-    mode:bind({'alt','cmd'}, 'up', function() hs.window.focusedWindow():focusWindowNorth() end)
-    mode:bind({'alt','cmd'}, 'down', function() hs.window.focusedWindow():focusWindowSouth() end)
-    mode:bind({'alt','cmd'}, 'right', function()  hs.window.focusedWindow():focusWindowEast() end)
-    mode:bind({'alt','cmd'}, 'left', function() hs.window.focusedWindow():focusWindowWest() end)
-
-end)
-
--- Focus windows:
-local function focus(direction)
-  local fn = "focusWindow" .. (direction:gsub("^%l", string.upper))
-
-  return function()
-    local win = hs.window:focusedWindow()
-    if not win then return end
-
-    win[fn]()
-  end
+function FourthWindow (x,y,w,h)
+	return HalfWindow (x,y,w,h)
 end
 
-hs.hotkey.bind({"ctrl","alt","cmd"}, "w", focus("north"))
-hs.hotkey.bind({"ctrl","alt","cmd"}, "d", focus("east"))
-hs.hotkey.bind({"ctrl","alt","cmd"}, "s", focus("south"))
-hs.hotkey.bind({"ctrl","alt","cmd"}, "a", focus("west"))
+----------------------------------------------------------
+------------------------Nudge-----------------------------
+----------------------------------------------------------
+function Nudge (x,y)
+	return function ()
+		if NullErrorWindow () then return end
+		local frame = Win():frame()
+		frame.x = frame.x + x
+		frame.y = frame.y + y
+		Win():setFrame(frame)
+		Win():ensureIsInScreenBounds()
+	end
+end
 
---Grid:
-hs.hotkey.bind({"ctrl","alt","cmd"}, "space", function () 
-	hs.hints.windowHints()
-end)
+----------------------------------------------------------
+------------------------Focus-----------------------------
+----------------------------------------------------------
+function Focus (direction)
+	return function ()
+		if direction == "North" then
+			hs.window.filter.defaultCurrentSpace:focusWindowEast(nil,true,true)
+		end
 
---Time: 
-function AddZero (num) --Fix this so you add funny comments
+		if direction == "South" then
+			hs.window.filter.defaultCurrentSpace:focusWindowSouth(nil,true,true)
+		end
+
+		if direction == "East" then
+			hs.window.filter.defaultCurrentSpace:focusWindowEast(nil,true,true)
+		end
+		
+		if direction == "West" then
+			hs.window.filter.defaultCurrentSpace:focusWindowWest(nil,true,true)
+		end
+	end
+end
+
+----------------------------------------------------------
+----------------------------------------------------------
+-------------------------Spaces---------------------------
+----------------------------------------------------------
+----------------------------------------------------------
+local killallDock = false
+
+function ToggleKillallDock ()
+	killallDock = not killallDock 
+	hs.alert.show("KillallDock: " .. tostring(killallDock))
+end
+
+function LeftSpace ()
+	local SpacesArrayLength = #spaces.layout()[spaces.mainScreenUUID()]
+	for i = 1,SpacesArrayLength,1
+		do
+		if spaces.layout()[spaces.mainScreenUUID()][1] == spaces.query(spaces.masks.currentSpaces)[1]
+			then hs.alert.show("END") break
+		end
+		if 	spaces.layout()[spaces.mainScreenUUID()][i] == spaces.query(spaces.masks.currentSpaces)[1]
+			then spaces.changeToSpace(spaces.layout()[spaces.mainScreenUUID()][i - 1],killallDock) hs.window.focusedWindow():focusWindowEast() hs.window.focusedWindow():focusWindowWest() break
+		end
+	end
+end
+
+function RightSpace ()
+	local SpacesArrayLength = #spaces.layout()[spaces.mainScreenUUID()]
+	for i = 1,SpacesArrayLength,1
+		do
+		if spaces.layout()[spaces.mainScreenUUID()][SpacesArrayLength] == spaces.query(spaces.masks.currentSpaces)[1]
+			then hs.alert.show("END") break
+		end
+		if 	spaces.layout()[spaces.mainScreenUUID()][i] == spaces.query(spaces.masks.currentSpaces)[1]
+			then spaces.changeToSpace(spaces.layout()[spaces.mainScreenUUID()][i + 1],killallDock) hs.window.focusedWindow():focusWindowEast() hs.window.focusedWindow():focusWindowWest() break
+		end
+	end
+end
+
+----------------------------------------------------------
+----------------------------------------------------------
+--------------------------Time----------------------------
+----------------------------------------------------------
+----------------------------------------------------------
+--Maybe have funny comments for day and time. Day changes once a day time changes every hour or something
+--Add image support
+function AddZero (num)
 	if (num < 10) then
-		return "0" .. tostring(num) .. " ah yeah!"
+		return "0" .. tostring(num)
+	else
+		return tostring(num) 
 	end
-
-	if (num % 10) == 0 then
-		return tostring(num) .. " woo!"
-	end
-	
-	return num .. " 'oclock"
 end
 
---Maybe seperate time from battery check so you can write funny comments.
 function Time ()
 	local hour = (os.date("*t"))["hour"]
 	local min = (os.date("*t"))["min"]
 	local day = (os.date("*t"))["day"]
 	local month = (os.date("*t"))["month"]
 	local year = (os.date("*t"))["year"]
-	
-	return "Time: " .. hour .. ":" .. AddZero(min) --.. " Date: " .. AddZero(day) .. "." .. AddZero(month) .. "." .. year
+	local am = "am"
+
+	if (hour > 12) then
+		hour = hour - 12
+		am = "pm"
+	end
+
+	return "Date: " .. AddZero(day) .. "." .. AddZero(month) .. "." .. year .. 
+		   "\nTime: " .. hour .. ":" .. AddZero(min) .. am, 
+		   {hour, min, day, month, year}
 end
 
---Battery:
-function round(num, idp)
-  return tonumber(string.format("%." .. (idp or 0) .. "f", num))
+function TimeNotification ()
+	local Subconscious = ""
+	local Text = Time () --.. "\n" .. "Subconscious:" .. Subconscious
+	hs.notify.new({title="Date & Time", informativeText=Text, hasActionButton = false}):send()
 end
 
-
-hs.hotkey.bind({"ctrl","alt","cmd"}, "b", function ()
-    hs.alert.show(
-        "Percent: " .. tostring(hs.battery.percentage()) ..
-        "\nTime Remaining: " .. "Hours: " .. round(hs.battery.timeRemaining()/60,2) ..
-        "\nCondition: " .. tostring(hs.battery.health()) ..
-        "\nVolts: " .. tostring(hs.battery.voltage()) .. 
-        "\nWalts: " .. tostring(hs.battery.watts())) 
-    hs.notify.new({title="Battery", informativeText="Percent: ",soundName = "Glass.aiff", hasActionButton = false})
-	end)
-
-local Text = ""
+----------------------------------------------------------
+----------------------------------------------------------
+------------------------Battery---------------------------
+----------------------------------------------------------
+----------------------------------------------------------
 local ChargeCondition = ""
 
 function ChangeChargeMessage (a,b, message)
 	if hs.battery.percentage() >= a and hs.battery.percentage() < b then ChargeCondition = message end
 end
 
-hs.hotkey.bind({}, "f12", function () 	
+function BatteryNotification () --This should be cleaned up to to a switch case.
+	local Text = ""
 
 	if hs.battery.isCharging() then 
 		if hs.battery.percentage() == 100 then ChargeCondition = "Set me free" end
@@ -281,60 +272,26 @@ hs.hotkey.bind({}, "f12", function ()
         ChangeChargeMessage (0,2,"I hope one day I wake up")
 	end
 
-	local Percent = "Percent: " .. tostring(hs.battery.percentage())
-
-	if hs.battery.percentage() > 40 then
-		Percent = ""
-	end
-
-    Text =  Percent .. " " .. Time() ..
+    Text =  "Percent: " .. tostring(hs.battery.percentage()) ..
 		   "\nCondition: " .. tostring(ChargeCondition)
 
     hs.notify.new({title="Battery", informativeText=Text, hasActionButton = false}):send()
-end)
+end
 
---Spaces:
-local killallDock = false
-
-hs.hotkey.bind({"ctrl","alt","cmd"}, "delete", function () killallDock = not killallDock hs.alert.show("KillallDock: " .. tostring(killallDock))
- end) 
-hs.hotkey.bind({"ctrl","shift"},"left", function () 
-	local SpacesArrayLength = #spaces.layout()[spaces.mainScreenUUID()]
-	for i = 1,SpacesArrayLength,1
-		do
-		if spaces.layout()[spaces.mainScreenUUID()][1] == spaces.query(spaces.masks.currentSpaces)[1]
-			then hs.alert.show("END") break
-		end
-		if 	spaces.layout()[spaces.mainScreenUUID()][i] == spaces.query(spaces.masks.currentSpaces)[1]
-			then spaces.changeToSpace(spaces.layout()[spaces.mainScreenUUID()][i - 1],killallDock) hs.window.focusedWindow():focusWindowEast() hs.window.focusedWindow():focusWindowWest() break
-		end
-	end
-
-end)
-
-hs.hotkey.bind({"ctrl","shift"},"right", function ()
-	local SpacesArrayLength = #spaces.layout()[spaces.mainScreenUUID()]
-	for i = 1,SpacesArrayLength,1
-		do
-		if spaces.layout()[spaces.mainScreenUUID()][SpacesArrayLength] == spaces.query(spaces.masks.currentSpaces)[1]
-			then hs.alert.show("END") break
-		end
-		if 	spaces.layout()[spaces.mainScreenUUID()][i] == spaces.query(spaces.masks.currentSpaces)[1]
-			then spaces.changeToSpace(spaces.layout()[spaces.mainScreenUUID()][i + 1],killallDock) hs.window.focusedWindow():focusWindowEast() hs.window.focusedWindow():focusWindowWest() break
-		end
-	end
-end)
-
--- Load Desktops: 
+----------------------------------------------------------
+----------------------------------------------------------
+------------------------New Space-------------------------
+----------------------------------------------------------
+----------------------------------------------------------
 local AddSpace = 0
 
-function CreateMultipleSpaces (Number)
+function NewSpace (Number)
 	for i = 1, Number, 1 do
 		spaces.createSpace(spaces.mainScreenUUID(), true)
 	end
 end
 
-function LoadDesktops (Number)
+function MultipleNewSpaces (Number)
 	local FindDesktopSpace = #spaces.layout()[spaces.mainScreenUUID()]
 
 	for i = 1,FindDesktopSpace,1
@@ -347,27 +304,78 @@ function LoadDesktops (Number)
 
 	if (AddSpace < Number) then
 		local AmountOfDesktopsToAdd = Number - AddSpace
-		CreateMultipleSpaces(AmountOfDesktopsToAdd)
+		NewSpace(AmountOfDesktopsToAdd)
 	end
 end
 
--- Redshift:
-local wfRedshift=hs.window.filter.new({VLC={focused=true},Photos={focused=true},loginwindow={visible=true,allowRoles='*'}},'wf-redshift')
-local IsRedshiftOn = true
-hs.hotkey.bind({"ctrl","alt","cmd"},'f1',function () 
-        IsRedshiftOn = not IsRedshiftOn     
-        if (IsRedshiftOn)
-            then hs.redshift.start(2800,'21:00','7:00','4h',false,wfRedshift)
-        else  hs.redshift.stop()
-        end
-        hs.alert.show('Redshift: '..tostring(IsRedshiftOn)) 
-end)
+----------------------------------------------------------
+----------------------------------------------------------
+----------------------Key Bindings------------------------
+----------------------------------------------------------
+----------------------------------------------------------
+local shiftCmdAltCtrl = {"cmd","alt","ctrl","shift"}
+local cmdAltCtrl = {"cmd","alt","ctrl"}
 
--- Reload Hammerspoon:
-hs.hotkey.bind({"ctrl","alt","cmd"},"R", function()
-	hs.reload()
-end)
+--Hammerspoon
+hs.hotkey.bind(cmdAltCtrl,"r",hs.reload)
+hs.hotkey.bind(shiftCmdAltCtrl,"r",hs.toggleConsole)
 
---Auto Load: 
-LoadDesktops(2) 
-hs.alert.show("Ready to rock")
+--Window Management
+hs.hotkey.bind(cmdAltCtrl,"`",nil,FullScreen)
+hs.hotkey.bind(shiftCmdAltCtrl,"`",nil,CenterScreen)
+
+hs.hotkey.bind(cmdAltCtrl,"up",nil,HalfWindow(0,0,1,.5))
+hs.hotkey.bind(cmdAltCtrl,"down",nil,HalfWindow(0,.5,1,.5))
+hs.hotkey.bind(cmdAltCtrl,"left",nil,HalfWindow(0,0,.5,1))
+hs.hotkey.bind(cmdAltCtrl,"right",nil,HalfWindow(.5,0,.5,1))
+
+hs.hotkey.bind(shiftCmdAltCtrl,"right",nil,   FourthWindow(.5,0,.5,.5))
+hs.hotkey.bind(shiftCmdAltCtrl,"left",nil, FourthWindow(0,.5,.5,.5))
+hs.hotkey.bind(shiftCmdAltCtrl,"down",nil, FourthWindow(.5,.5,.5,.5))
+hs.hotkey.bind(shiftCmdAltCtrl,"up",nil,FourthWindow(0,0,.5,.5))
+
+--Nudge
+hs.hotkey.bind(cmdAltCtrl,"t",Nudge(0,-10),nil,Nudge(0,-5))
+hs.hotkey.bind(cmdAltCtrl,"g",Nudge(0,10),nil,Nudge(0,5))
+hs.hotkey.bind(cmdAltCtrl,"f",Nudge(-10,0),nil,Nudge(-5,0))
+hs.hotkey.bind(cmdAltCtrl,"h",Nudge(10,0),nil,Nudge(5,0))
+
+hs.hotkey.bind(shiftCmdAltCtrl,"t",Nudge(0,-100),nil,Nudge(0,-20))
+hs.hotkey.bind(shiftCmdAltCtrl,"g",Nudge(0,100),nil,Nudge(0,20))
+hs.hotkey.bind(shiftCmdAltCtrl,"f",Nudge(-100,0),nil,Nudge(-20,0))
+hs.hotkey.bind(shiftCmdAltCtrl,"h",Nudge(100,0),nil,Nudge(20,0))
+
+--Focus
+hs.hotkey.bind(cmdAltCtrl,"w",Focus("North"))
+hs.hotkey.bind(cmdAltCtrl,"s",Focus("South"))
+hs.hotkey.bind(cmdAltCtrl,"a",Focus("West"))
+hs.hotkey.bind(cmdAltCtrl,"d",Focus("East"))
+
+--Spaces
+hs.hotkey.bind({"ctrl","shift"}, "up", ToggleKillallDock) 
+hs.hotkey.bind({"ctrl","shift"},"left", LeftSpace)
+hs.hotkey.bind({"ctrl","shift"},"right", RightSpace)
+
+--Battery Notification
+hs.hotkey.bind({}, "f12", BatteryNotification)
+hs.hotkey.bind({"shift"}, "f12", TimeNotification)
+
+--Hints
+hs.hotkey.bind(cmdAltCtrl, "f3", hs.hints.windowHints)
+
+----------------------------------------------------------
+----------------------------------------------------------
+----------------------At Start Up-------------------------
+----------------------------------------------------------
+----------------------------------------------------------
+function Greetings ()
+	local random = math.random(6)
+	if random == 0 or random == 1 or random == 2 or random == 3 then Alert ("Ladybug")
+	elseif random == 4 then Alert ("Ready to rock")
+	elseif random == 5 then Alert ("Good times; keep rollin'")
+	else Alert ("Impossible")
+	end
+end
+
+MultipleNewSpaces(2)
+Greetings()
