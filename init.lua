@@ -1,22 +1,10 @@
 -- DEBUG: hs.inspect.inspect
+-- For certain apps you could disable keybindings. 
 
 --Import:
 spaces = require("hs._asm.undocumented.spaces")
 --Configs:
 hs.window.animationDuration = 0
-
---iTunes
-local iTunesHotKeysOn = false
-hs.hotkey.bind({"ctrl","alt","cmd"},"m", function ()
-	iTunesHotKeysOn = not iTunesHotKeysOn
-    hs.alert.show("iTunes Hotkeys: "..tostring(iTunesHotKeysOn))
-	end)
-
-hs.hotkey.bind({},"f8", function ()
-	if (iTunesHotKeysOn) then
-		hs.itunes.playpause()
-	end
-end)
 
 --Window management:
 local function Adjust(x, y, w, h)
@@ -337,13 +325,6 @@ hs.hotkey.bind({"ctrl","shift"},"right", function ()
 	end
 end)
 
--- Move Window to Assigned Space
-hs.hotkey.bind({"ctrl","alt","cmd"},"f3", function ()
-
-
-
-end) 
-
 -- Load Desktops: 
 local AddSpace = 0
 
@@ -370,10 +351,6 @@ function LoadDesktops (Number)
 	end
 end
 
-function LoadFourDesktops ()
-	LoadDesktops(2)
-end
-
 -- Redshift:
 local wfRedshift=hs.window.filter.new({VLC={focused=true},Photos={focused=true},loginwindow={visible=true,allowRoles='*'}},'wf-redshift')
 local IsRedshiftOn = true
@@ -392,5 +369,5 @@ hs.hotkey.bind({"ctrl","alt","cmd"},"R", function()
 end)
 
 --Auto Load: 
-LoadFourDesktops()
+LoadDesktops(2) 
 hs.alert.show("Ready to rock")
