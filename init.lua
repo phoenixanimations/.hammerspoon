@@ -217,11 +217,8 @@ function Time ()
 	local year = (os.date("*t"))["year"]
 	local am = "am"
 
-	if (hour > 12) then 
-		hour = hour - 12
-	end
-
 	if (hour > 12 or hour == 12) then
+		hour = hour - 12
 		am = "pm"
 	end
 
@@ -444,7 +441,7 @@ function mouseHighlight()
 	mouseCircle:setStrokeWidth(5)
 	mouseCircle:show()
 
-	mouseCircleTimer = hs.timer.doAfter(1, function () mouseCircle:delete() end)
+	mouseCircleTimer = hs.timer.doAfter(3, function () mouseCircle:delete() end)
 end
 
 ----------------------------------------------------------
