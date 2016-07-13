@@ -217,20 +217,27 @@ function Time ()
 	local year = (os.date("*t"))["year"]
 	local am = "am"
 
-	if (hour > 12) then
+	if (hour > 12) then 
 		hour = hour - 12
+	end
+
+	if (hour > 12 or hour == 12) then
 		am = "pm"
 	end
 
-	return "Date: " .. AddZero(month) .. "." .. AddZero(day) .. "." .. year .. 
-		   "\nTime: " .. hour .. ":" .. AddZero(min) .. am, 
+	if (hour == 12) then
+		hour = "00"
+	end
+
+	return "Date: " .. AddZero(month) .. ". " .. AddZero(day) .. ". " .. year .. 
+		   "\nTime: " .. hour .. " : " .. AddZero(min) .. " " .. am, 
 		   {hour, min, day, month, year}
 end
 
 function TimeNotification ()
 	local Subconscious = ""
 	local Text = Time () --.. "\n" .. "Subconscious:" .. Subconscious
-	hs.notify.new({title="Date & Time", informativeText=Text, hasActionButton = false}):setIdImage("/Users/Getpeanuts/Desktop/icon.png"):send()
+	hs.notify.new({title="Date & Time", informativeText=Text, hasActionButton = false}):send() --:setIdImage("/Users/Getpeanuts/Desktop/icon.png")
 end
 
 ----------------------------------------------------------
@@ -504,10 +511,10 @@ hs.hotkey.bind(cmdAltCtrl, "/", mouseHighlight)
 
 --Applications 
 hs.hotkey.bind(cmdAltCtrl, "z", BindLaunchApplication("Finder"))
-hs.hotkey.bind(cmdAltCtrl, "x", BindLaunchApplication("Adobe Illustrator CS6"))
-hs.hotkey.bind(cmdAltCtrl, "c", BindLaunchApplication("Adobe After Effects CS6"))
-hs.hotkey.bind(cmdAltCtrl, "v", BindLaunchApplication("StoryMill"))
-hs.hotkey.bind(cmdAltCtrl, "b", LaunchiTunesAndiTunesAlarm)
+hs.hotkey.bind(cmdAltCtrl, "x", BindLaunchApplication("Adobe Illustrator"))
+hs.hotkey.bind(cmdAltCtrl, "c", BindLaunchApplication("StoryMill"))
+hs.hotkey.bind(cmdAltCtrl, "v", LaunchiTunesAndiTunesAlarm)
+hs.hotkey.bind(cmdAltCtrl, "b", BindLaunchApplication("Adobe After Effects CS6"))
 hs.hotkey.bind(cmdAltCtrl, "n", BindLaunchApplication("Maya"))
 
 --Hints
