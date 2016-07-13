@@ -1,10 +1,8 @@
 -- DEBUG: hs.inspect.inspect
 -- For certain apps you could disable keybindings. 
 -- for i,v in pairs(t) do print(i,v) end
--- Show only opened applications 
--- Motivation button
 --hs.help("")
---Don't forget you have shift + f3 and just f3
+--Don't forget you have shift + f1 and just f1
 --Maybe re add redshift?
 
 spaces = require("hs._asm.undocumented.spaces")
@@ -21,8 +19,9 @@ hs.window.setFrameCorrectness = false
 -----------------------Hammerspoon------------------------
 ----------------------------------------------------------
 ----------------------------------------------------------
-function Alert (message)
-	hs.alert.show(message)
+function Alert (message, seconds)
+	local _seconds = seconds or 2
+	hs.alert.show(message,_seconds)
 end
 
 ----------------------------------------------------------
@@ -104,7 +103,10 @@ function CenterScreen ()
 	if CenterScreenState == 5 then SquareWindow(.95) end
 
 	CenterScreenState = CenterScreenState + 1
-	if CenterScreenState > 6 then CenterScreenState = 0 end
+	if CenterScreenState > 6 then 
+		CenterScreenState = 0 
+		FullScreen()
+	end
 end
 
 function HalfWindow (x,y,w,h)
@@ -220,7 +222,7 @@ function Time ()
 		am = "pm"
 	end
 
-	return "Date: " .. AddZero(day) .. "." .. AddZero(month) .. "." .. year .. 
+	return "Date: " .. AddZero(month) .. "." .. AddZero(day) .. "." .. year .. 
 		   "\nTime: " .. hour .. ":" .. AddZero(min) .. am, 
 		   {hour, min, day, month, year}
 end
@@ -228,7 +230,7 @@ end
 function TimeNotification ()
 	local Subconscious = ""
 	local Text = Time () --.. "\n" .. "Subconscious:" .. Subconscious
-	hs.notify.new({title="Date & Time", informativeText=Text, hasActionButton = false}):send()
+	hs.notify.new({title="Date & Time", informativeText=Text, hasActionButton = false}):setIdImage("/Users/Getpeanuts/Desktop/icon.png"):send()
 end
 
 ----------------------------------------------------------
@@ -315,13 +317,33 @@ end
 local MotivationState = 0
 
 function Motivation ()
-	if MotivationState == 0 then Alert("hi")
-	elseif MotivationState == 1 then Alert("Hello")
-	else Alert("what")
+	if MotivationState == 0 then Alert("Amateurs sit and wait for inspiration, the rest of us just get up and go to work.",10)
+	elseif MotivationState == 1 then Alert("All men dream, but not equally. Those who dream by night in the dusty recesses of their minds, \nwake in the day to find that it was vanity: but the dreamers of the day are dangerous men, \nfor they may act on their dreams with open eyes, to make them possible.",20)
+	elseif MotivationState == 2 then Alert("Action is the foundational key to all success.",10)
+	elseif MotivationState == 3 then Alert("There is no substitute for hard work.",10)
+	elseif MotivationState == 4 then Alert("Focused, hard work is the real key to success. \nKeep your eyes on the goal, and \njust keep taking the next step towards completing it.",10)
+	elseif MotivationState == 5 then Alert("Opportunities are usually disguised as hard work, \nso most people don't recognize them.",20)
+	elseif MotivationState == 6 then Alert("It's hard to beat a person who never gives up.",10)
+	elseif MotivationState == 7 then Alert("The mind is everything. What you think you become.",10)
+	elseif MotivationState == 8 then Alert("Eighty percent of success is showing up.",10)
+	elseif MotivationState == 9 then Alert("Fall seven times and stand up eight.",10)
+	elseif MotivationState == 10 then Alert("The best time to plant a tree is 20 years ago. \nThe second best time is now.",10)
+	elseif MotivationState == 11 then Alert("We don't make movies to make money, \nwe make money to make more movies.",10)
+	elseif MotivationState == 12 then Alert("A person who chases two rabbits catches neither.",15)
+	elseif MotivationState == 13 then Alert("Inspiration exists, but it has to find you working.",10)
+	elseif MotivationState == 14 then Alert("If there is no wind, row.",10)
+	elseif MotivationState == 15 then Alert("Man cannot remake himself without suffering for he is both the marble and the sculptor.",10)
+	elseif MotivationState == 16 then Alert("A smooth sea never made a skilled sailor.",10)
+	elseif MotivationState == 17 then Alert("Your future self is watching you right now through your memories.",10)
+	elseif MotivationState == 18 then Alert("Why worry?  If you have done the very best you can. Worrying won't make it any better. \nIf you want to be successful, respect one rule - never let failure take control of you. \nEverybody has gone through something that has changed them in a way\n that they could never go back to the person they once were.\n Relations are like electric currents, wrong connections will give you shocks throughtout your life, \nbut the right ones will light you up.",50)
+	elseif MotivationState == 19 then Alert("In '95 I had $7 bucks. By '96 I was wrestling in flea markets for $40 bucks a night (God bless Waffle House).. \nTo #25 on FORBES Top 100 Most Powerful. \nSome of you out there might be going thru your own '$7 bucks in your pocket' situation..\n Embrace the grind, lower your shoulder and keep drivin' thru that motherf*cker. \nChange will come.",50)
+	elseif MotivationState == 20 then Alert("There is an art, it says, or rather, a knack to flying. \nThe knack lies in learning how to throw yourself at the ground and miss.",30)
+	elseif MotivationState == 21 then Alert("It is no coincidence that in no known language does the phrase 'As pretty as an Airport' appear.",10)
+	elseif MotivationState == 22 then Alert("He felt that his whole life was some kind of dream \nand he sometimes wondered whose it was and whether they were enjoying it.",20)
+	else Alert("Woo!")
 	end
 
-	MotivationState = MotivationState + 1
-	if MotivationState > 3 then MotivationState = 0 end
+	MotivationState = math.random(22)
 end
 
 ----------------------------------------------------------
@@ -366,6 +388,56 @@ function ShowAllFiles ()
 
 	hs.applescript(applescriptText)
 	ShowAllFilesState = not ShowAllFilesState
+end
+
+----------------------------------------------------------
+-----------------------Applications-----------------------
+----------------------------------------------------------
+function LaunchApplication (application)
+	local applescriptText = 'tell application "' .. application .. '" to activate' 
+	hs.applescript(applescriptText)
+end
+
+function BindLaunchApplication (application)
+	return function () 
+		LaunchApplication(application)
+	end
+end
+
+function LaunchiTunesAndiTunesAlarm ()
+	LaunchApplication("iTunes")
+	LaunchApplication("iTunes Alarm")
+end
+
+----------------------------------------------------------
+----------------------------------------------------------
+--------------------------Mouse---------------------------
+----------------------------------------------------------
+----------------------------------------------------------
+
+----------------------------------------------------------
+-------------------Hammerspoon code-----------------------
+----------------------------------------------------------
+--Rewrite so circle follows mouse change shape/color of circle/square 
+local mouseCircle = nil
+local mouseCircleTimer = nil
+
+function mouseHighlight()
+	if mouseCircle then 
+		mouseCircle:delete()
+		if mouseCircleTimer then 
+			mouseCircleTimer:stop()
+		end
+	end
+	mousepoint = hs.mouse.getAbsolutePosition()
+	mouseCircle = hs.drawing.circle(
+		hs.geometry.rect(mousepoint.x - 40, mousepoint.y - 40, 80, 80))
+	mouseCircle:setStrokeColor({["red"]=1,["blue"]=0,["green"]=0,["alpha"]=1})
+	mouseCircle:setFill(false)
+	mouseCircle:setStrokeWidth(5)
+	mouseCircle:show()
+
+	mouseCircleTimer = hs.timer.doAfter(1, function () mouseCircle:delete() end)
 end
 
 ----------------------------------------------------------
@@ -426,6 +498,17 @@ hs.hotkey.bind(cmdAltCtrl,"m",Motivation)
 --Applescript
 hs.hotkey.bind(cmdAltCtrl,"f3",HideUnopenApps)
 hs.hotkey.bind(cmdAltCtrl,"f4",ShowAllFiles)
+
+--Mouse
+hs.hotkey.bind(cmdAltCtrl, "/", mouseHighlight)
+
+--Applications 
+hs.hotkey.bind(cmdAltCtrl, "z", BindLaunchApplication("Finder"))
+hs.hotkey.bind(cmdAltCtrl, "x", BindLaunchApplication("Adobe Illustrator CS6"))
+hs.hotkey.bind(cmdAltCtrl, "c", BindLaunchApplication("Adobe After Effects CS6"))
+hs.hotkey.bind(cmdAltCtrl, "v", BindLaunchApplication("StoryMill"))
+hs.hotkey.bind(cmdAltCtrl, "b", LaunchiTunesAndiTunesAlarm)
+hs.hotkey.bind(cmdAltCtrl, "n", BindLaunchApplication("Maya"))
 
 --Hints
 hs.hotkey.bind(cmdAltCtrl, "space", hs.hints.windowHints)
