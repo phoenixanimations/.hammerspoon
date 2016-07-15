@@ -48,7 +48,11 @@ end
 ----------------------------------------------------------
 function NullErrorWindow ()
 	local win = hs.window.focusedWindow()
-	if NullError(win) then return true end
+	if NullError(win) then 
+		Alert("Window doesn't Exist") 
+		return true 
+	end
+
 	return false
 end
 
@@ -133,13 +137,23 @@ function Nudge (x,y)
 	end
 end
 
+function Resize (w,h)
+	return function ()
+		if NullErrorWindow () then return end
+		local frame = Win():frame()
+		frame.w = frame.w + w
+		frame.h = frame.h + h
+		Win():setFrame(frame)
+	end
+end
+
 ----------------------------------------------------------
 ------------------------Focus-----------------------------
 ----------------------------------------------------------
 function Focus (direction)
 	return function ()
 		if direction == "North" then
-			hs.window.filter.defaultCurrentSpace:focusWindowEast(nil,true,true)
+			hs.window.filter.defaultCurrentSpace:focusWindowNorth(nil,true,true)
 		end
 
 		if direction == "South" then
@@ -226,8 +240,8 @@ function Time ()
 		hour = "00"
 	end
 
-	return "Date: " .. AddZero(month) .. ". " .. AddZero(day) .. ". " .. year .. 
-		   "\nTime: " .. hour .. " : " .. AddZero(min) .. " " .. am, 
+	return "Date: " .. AddZero(month) .. "/" .. AddZero(day) .. "/" .. year .. 
+		   "\nTime: " .. hour .. ":" .. AddZero(min) .. " " .. am, 
 		   {hour, min, day, month, year}
 end
 
@@ -355,7 +369,7 @@ end
 ----------------------Applescript-------------------------
 ----------------------------------------------------------
 ----------------------------------------------------------
-local HideUnopenAppsState = true
+local HideUnopenAppsState = false
 
 function HideUnopenApps ()
 	if HideUnopenAppsState then 
@@ -481,6 +495,12 @@ hs.hotkey.bind(shiftCmdAltCtrl,"g",Nudge(0,100),nil,Nudge(0,20))
 hs.hotkey.bind(shiftCmdAltCtrl,"f",Nudge(-100,0),nil,Nudge(-20,0))
 hs.hotkey.bind(shiftCmdAltCtrl,"h",Nudge(100,0),nil,Nudge(20,0))
 
+--Resize
+hs.hotkey.bind(shiftCmdAltCtrl,"w",Resize(0,-10),nil,Resize(0,-50))
+hs.hotkey.bind(shiftCmdAltCtrl,"s",Resize(0,10),nil,Resize(0,50))
+hs.hotkey.bind(shiftCmdAltCtrl,"a",Resize(-10,0),nil,Resize(-50,0))
+hs.hotkey.bind(shiftCmdAltCtrl,"d",Resize(10,0),nil,Resize(50,0))
+
 --Focus
 hs.hotkey.bind(cmdAltCtrl,"w",Focus("North"))
 hs.hotkey.bind(cmdAltCtrl,"s",Focus("South"))
@@ -507,12 +527,12 @@ hs.hotkey.bind(cmdAltCtrl,"f4",ShowAllFiles)
 hs.hotkey.bind(cmdAltCtrl, "/", mouseHighlight)
 
 --Applications 
-hs.hotkey.bind(cmdAltCtrl, "z", BindLaunchApplication("Finder"))
-hs.hotkey.bind(cmdAltCtrl, "x", BindLaunchApplication("Adobe Illustrator"))
-hs.hotkey.bind(cmdAltCtrl, "c", BindLaunchApplication("StoryMill"))
-hs.hotkey.bind(cmdAltCtrl, "v", LaunchiTunesAndiTunesAlarm)
-hs.hotkey.bind(cmdAltCtrl, "b", BindLaunchApplication("Adobe After Effects CS6"))
-hs.hotkey.bind(cmdAltCtrl, "n", BindLaunchApplication("Maya"))
+hs.hotkey.bind(cmdAltCtrl, "-", BindLaunchApplication("Adobe Illustrator"))
+hs.hotkey.bind(cmdAltCtrl, "=", BindLaunchApplication("Adobe After Effects CS6"))
+hs.hotkey.bind(cmdAltCtrl, "\\", BindLaunchApplication("Finder"))
+hs.hotkey.bind(cmdAltCtrl, "[", BindLaunchApplication("StoryMill"))
+hs.hotkey.bind(cmdAltCtrl, "]", LaunchiTunesAndiTunesAlarm)
+hs.hotkey.bind(cmdAltCtrl, ";", BindLaunchApplication("Maya"))
 
 --Hints
 hs.hotkey.bind(cmdAltCtrl, "space", hs.hints.windowHints)
