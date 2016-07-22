@@ -21,7 +21,7 @@ hs.window.setFrameCorrectness = false
 ----------------------------------------------------------
 function Alert (message, seconds)
 	local _seconds = seconds or 2
-	hs.alert.show(message,_seconds)
+	hs.alert.show(tostring(message),_seconds)
 end
 
 ----------------------------------------------------------
@@ -209,6 +209,38 @@ function RightSpace ()
 end
 
 ----------------------------------------------------------
+------------------------New Space-------------------------
+----------------------------------------------------------
+function NewSpace (Number)
+	for i = 1, Number, 1 do
+		spaces.createSpace(spaces.mainScreenUUID(), true)
+	end
+end
+
+function MultipleNewSpaces (Number)
+	local AddSpace = 0
+
+	if spaces.layout()[spaces.mainScreenUUID()] == nil then 
+		hs.notify.new({title="Spaces", informativeText="Function MultipleNewSpaces: spaces.layout()[...] == nil", hasActionButton = false}):send()
+		return 
+	end
+
+	local FindDesktopSpace = #spaces.layout()[spaces.mainScreenUUID()]
+	for i = 1,FindDesktopSpace,1
+		do
+		local CurrentSpaceID = spaces.spaceType(spaces.layout()[spaces.mainScreenUUID()][i])
+		if CurrentSpaceID == 0 then 
+			AddSpace = AddSpace + 1
+		end
+	end
+
+	if (AddSpace < Number) then
+		local AmountOfDesktopsToAdd = Number - AddSpace
+		NewSpace(AmountOfDesktopsToAdd)
+	end
+end
+
+----------------------------------------------------------
 ----------------------------------------------------------
 --------------------------Time----------------------------
 ----------------------------------------------------------
@@ -295,36 +327,6 @@ function BatteryNotification () --This should be cleaned up to to a switch case.
 		   "\nCondition: " .. tostring(ChargeCondition)
 
     hs.notify.new({title="Battery", informativeText=Text, hasActionButton = false}):send()
-end
-
-----------------------------------------------------------
-----------------------------------------------------------
-------------------------New Space-------------------------
-----------------------------------------------------------
-----------------------------------------------------------
-local AddSpace = 0
-
-function NewSpace (Number)
-	for i = 1, Number, 1 do
-		spaces.createSpace(spaces.mainScreenUUID(), true)
-	end
-end
-
-function MultipleNewSpaces (Number)
-	local FindDesktopSpace = #spaces.layout()[spaces.mainScreenUUID()]
-
-	for i = 1,FindDesktopSpace,1
-		do
-		local CurrentSpaceID = spaces.spaceType(spaces.layout()[spaces.mainScreenUUID()][i])
-		if CurrentSpaceID == 0 then 
-			AddSpace = AddSpace + 1
-		end
-	end
-
-	if (AddSpace < Number) then
-		local AmountOfDesktopsToAdd = Number - AddSpace
-		NewSpace(AmountOfDesktopsToAdd)
-	end
 end
 
 ----------------------------------------------------------
@@ -429,12 +431,56 @@ end
 
 ----------------------------------------------------------
 ----------------------------------------------------------
+------------------Autoload Application--------------------
+----------------------------------------------------------
+----------------------------------------------------------
+function LoadMultipleApps (Applications)
+	if type(Applications) == not "table" then 
+		Alert("Error: LoadMultipleApps, Applications not a 'table'")
+		return
+	end
+
+	local SpaceState = 1
+	local NumberOfSpaces = #Applications + 1
+
+	MultipleNewSpaces(NumberOfSpaces)
+
+	while SpaceState < NumberOfSpaces do
+		local appWindow = hs.application.open(Applications[SpaceState],nil,true)
+		-- Alert (hs.window.focusedWindow():application():path())
+		SpaceState = SpaceState + 1
+	end
+
+	SpaceState = 1
+	local WindowState = #hs.window.orderedWindows()
+	if NumberOfSpaces - 1 == WindowState then 
+		while SpaceState < NumberOfSpaces do
+			hs.window.orderedWindows()[WindowState]:spacesMoveTo(spaces.layout()[spaces.mainScreenUUID()][SpaceState])
+			SpaceState = SpaceState + 1
+			WindowState = WindowState - 1
+		end
+	else
+		Alert(NumberOfSpaces)
+		Alert(WindowState - 1)
+		Alert("Please close all other Applications to Auto Sort", 5)
+	end
+end
+
+function BindLoadMultipleApps (Applications)
+	return function ()
+		LoadMultipleApps(Applications)
+	end
+end
+
+
+----------------------------------------------------------
+----------------------------------------------------------
 --------------------------Mouse---------------------------
 ----------------------------------------------------------
 ----------------------------------------------------------
 
 ----------------------------------------------------------
--------------------Hammerspoon code-----------------------
+--------------Taken from Hammerspoon docs-----------------
 ----------------------------------------------------------
 --Rewrite so circle follows mouse change shape/color of circle/square 
 local mouseCircle = nil
@@ -534,6 +580,9 @@ hs.hotkey.bind(cmdAltCtrl, "[", BindLaunchApplication("StoryMill"))
 hs.hotkey.bind(cmdAltCtrl, "]", LaunchiTunesAndiTunesAlarm)
 hs.hotkey.bind(cmdAltCtrl, ";", BindLaunchApplication("Maya"))
 
+--Load Multiple Applications
+hs.hotkey.bind(cmdAltCtrl, "delete", BindLoadMultipleApps({"Adobe Illustrator","Adobe After Effects CS6","StoryMill","SourceTree","iTunes","iTunes Alarm","Activity Monitor","Time Sink"}))
+
 --Hints
 hs.hotkey.bind(cmdAltCtrl, "space", hs.hints.windowHints)
 
@@ -551,5 +600,5 @@ function Greetings ()
 	end
 end
 
-MultipleNewSpaces(2)
+MultipleNewSpaces(3)
 Greetings()
