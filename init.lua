@@ -430,9 +430,7 @@ function LaunchiTunesAndiTunesAlarm ()
 end
 
 ----------------------------------------------------------
-----------------------------------------------------------
-------------------Autoload Application--------------------
-----------------------------------------------------------
+------------------Multiple Applications-------------------
 ----------------------------------------------------------
 function LoadMultipleApps (Applications)
 	if type(Applications) == not "table" then 
@@ -443,27 +441,27 @@ function LoadMultipleApps (Applications)
 	local SpaceState = 1
 	local NumberOfSpaces = #Applications + 1
 
-	MultipleNewSpaces(NumberOfSpaces)
-
 	while SpaceState < NumberOfSpaces do
-		local appWindow = hs.application.open(Applications[SpaceState],nil,true)
-		-- Alert (hs.window.focusedWindow():application():path())
+		LaunchApplication (Applications[SpaceState])
 		SpaceState = SpaceState + 1
 	end
+end
 
-	SpaceState = 1
+function AutoSortApps ()
+	local SpaceState = 1
+	local NumberOfSpaces = #hs.window.orderedWindows()
 	local WindowState = #hs.window.orderedWindows()
-	if NumberOfSpaces - 1 == WindowState then 
-		while SpaceState < NumberOfSpaces do
-			hs.window.orderedWindows()[WindowState]:spacesMoveTo(spaces.layout()[spaces.mainScreenUUID()][SpaceState])
-			SpaceState = SpaceState + 1
-			WindowState = WindowState - 1
-		end
-	else
-		Alert(NumberOfSpaces)
-		Alert(WindowState - 1)
-		Alert("Please close all other Applications to Auto Sort", 5)
+	local WindowTable = hs.window.orderedWindows()
+	if WindowState > 15 then Alert("Can't auto sort more than 15 windows") return end
+
+	MultipleNewSpaces(NumberOfSpaces)
+
+	while SpaceState < NumberOfSpaces + 1 do
+		WindowTable[WindowState]:spacesMoveTo(spaces.layout()[spaces.mainScreenUUID()][SpaceState])
+		SpaceState = SpaceState + 1
+		WindowState = WindowState - 1
 	end
+	Alert("Auto Sort: Complete")	
 end
 
 function BindLoadMultipleApps (Applications)
@@ -471,7 +469,6 @@ function BindLoadMultipleApps (Applications)
 		LoadMultipleApps(Applications)
 	end
 end
-
 
 ----------------------------------------------------------
 ----------------------------------------------------------
@@ -581,8 +578,9 @@ hs.hotkey.bind(cmdAltCtrl, "]", LaunchiTunesAndiTunesAlarm)
 hs.hotkey.bind(cmdAltCtrl, ";", BindLaunchApplication("Maya"))
 
 --Load Multiple Applications
-hs.hotkey.bind(cmdAltCtrl, "delete", BindLoadMultipleApps({"Adobe Illustrator","Adobe After Effects CS6","StoryMill","SourceTree","iTunes","iTunes Alarm","Activity Monitor","Time Sink"}))
-
+local ApplicationTable = {"Adobe Illustrator","Adobe After Effects CS6","StoryMill","SourceTree","iTunes","iTunes Alarm","Activity Monitor","Time Sink"}
+hs.hotkey.bind(cmdAltCtrl, "delete", BindLoadMultipleApps(ApplicationTable))
+hs.hotkey.bind(shiftCmdAltCtrl, "delete", AutoSortApps)
 --Hints
 hs.hotkey.bind(cmdAltCtrl, "space", hs.hints.windowHints)
 
