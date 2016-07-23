@@ -150,6 +150,46 @@ function HeliumScreen ()
 end
 
 ----------------------------------------------------------
+---------------------Swap Windows-------------------------
+----------------------------------------------------------
+local window = {}
+local changeWindow = 1
+
+function SetWindows ()
+	window[changeWindow] = Win ()
+	Alert("Window " .. tostring(changeWindow) .. " = " .. tostring(window[changeWindow]))
+	
+	changeWindow = changeWindow + 1
+	if changeWindow > 2 then changeWindow = 1 end
+end
+
+function SwapWindows ()
+	if not (window[1] == nil) and not (window[2] == nil) and not (window[1] == window[2]) then 
+		local tempFrame = window[1]:frame()
+		window[1]:setFrame(window[2]:frame())
+		window[2]:setFrame(tempFrame)
+	else
+		if (window[1] == window[2]) then Alert("Window 1 == Window 2") end
+		if (window[1] == nil) then Alert("Window 1 is Null") end
+		if (window[2] == nil) then Alert("Window 2 is Null") end
+	end
+end
+
+----------------------------------------------------------
+--------Transfer Windows to Different Monitor-------------
+----------------------------------------------------------
+function TransferWindow (direction)
+	if direction == "Right" or direction == "East" then Win():moveOneScreenEast(false,true) end
+	if direction == "Left" or direction == "West" then Win():moveOneScreenWest(false,true)  end
+end
+
+function BindTransferWindow (direction)
+	return function ()
+		TransferWindow(direction)
+	end
+end
+
+----------------------------------------------------------
 ------------------------Nudge-----------------------------
 ----------------------------------------------------------
 function Nudge (x,y)
@@ -201,8 +241,6 @@ end
 ---------------------Mouse Manipulation-------------------
 ----------------------------------------------------------
 ----------------------------------------------------------
-
-
 function MoveMouse (x,y,absolute)
 	mouse = {}
 	mouse["x"] = x
@@ -588,6 +626,14 @@ hs.hotkey.bind(shiftCmdAltCtrl,"left",nil, FourthWindow(0,.5,.5,.5))
 hs.hotkey.bind(shiftCmdAltCtrl,"down",nil, FourthWindow(.5,.5,.5,.5))
 hs.hotkey.bind(shiftCmdAltCtrl,"up",nil,FourthWindow(0,0,.5,.5))
 
+--Swap Windows
+hs.hotkey.bind(cmdAltCtrl,"tab",SwapWindows)
+hs.hotkey.bind(shiftCmdAltCtrl,"tab",SetWindows)
+
+--Transfer Window to monitor
+hs.hotkey.bind(cmdAltCtrl,",",BindTransferWindow("West"))
+hs.hotkey.bind(cmdAltCtrl,".",BindTransferWindow("East"))
+
 --Nudge
 hs.hotkey.bind(cmdAltCtrl,"t",Nudge(0,-10),nil,Nudge(0,-5))
 hs.hotkey.bind(cmdAltCtrl,"g",Nudge(0,10),nil,Nudge(0,5))
@@ -621,15 +667,15 @@ hs.hotkey.bind({}, "f12", BatteryNotification)
 hs.hotkey.bind({"shift"}, "f12", TimeNotification)
 
 --Motivation
-hs.hotkey.bind(cmdAltCtrl,"m",Motivation)
+hs.hotkey.bind(cmdAltCtrl,"f12",Motivation)
 
 --Applescript
 hs.hotkey.bind(cmdAltCtrl,"f3",HideUnopenApps)
 hs.hotkey.bind(cmdAltCtrl,"f4",ShowAllFiles)
 
 --Mouse
-hs.hotkey.bind(cmdAltCtrl, "/", MouseHighlight,nil,ResetMouse(false))
-hs.hotkey.bind(shiftCmdAltCtrl, "/", ResetMouse(true))
+hs.hotkey.bind(cmdAltCtrl, "m", MouseHighlight,nil,ResetMouse(false))
+hs.hotkey.bind(shiftCmdAltCtrl, "m", ResetMouse(true))
 
 --Applications 
 hs.hotkey.bind(cmdAltCtrl, "-", BindLaunchApplication("Adobe Illustrator"))
