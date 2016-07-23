@@ -99,18 +99,24 @@ end
 
 local CenterScreenState = 0
 function CenterScreen ()
-	if CenterScreenState == 0 then SquareWindow(.5) end
-	if CenterScreenState == 1 then SquareWindow(.6) end
-	if CenterScreenState == 2 then SquareWindow(.7) end
-	if CenterScreenState == 3 then SquareWindow(.8) end
-	if CenterScreenState == 4 then SquareWindow(.85) end
-	if CenterScreenState == 5 then SquareWindow(.95) end
+	if CenterScreenState == 0 then SquareWindow(.2) end
+	if CenterScreenState == 1 then SquareWindow(.5) end
+	if CenterScreenState == 2 then SquareWindow(.6) end
+	if CenterScreenState == 3 then SquareWindow(.7) end
+	if CenterScreenState == 4 then SquareWindow(.8) end
+	if CenterScreenState == 5 then SquareWindow(.85) end
+	if CenterScreenState == 6 then SquareWindow(.95) end
 
 	CenterScreenState = CenterScreenState + 1
-	if CenterScreenState > 6 then 
+	if CenterScreenState > 7 then 
 		CenterScreenState = 0 
 		FullScreen()
 	end
+end
+
+function ResetCenterScreenState ()
+	CenterScreenState = 0
+	Alert("Center Screen State = 0")
 end
 
 function HalfWindow (x,y,w,h)
@@ -121,6 +127,26 @@ end
 
 function FourthWindow (x,y,w,h)
 	return HalfWindow (x,y,w,h)
+end
+
+local HeliumState = 1
+function HeliumScreen ()
+	LaunchApplication ("Helium")
+	Adjust (ScreenFrame().w - 60,0,60,50)
+	MoveMouse(ScreenFrame().w - 30,38)
+	
+	MouseWheel(-1000,-1000)
+	if HeliumState == 1 then MouseWheel(568,406,true)
+	elseif HeliumState == 2 then MouseWheel(568,406,true)	
+	elseif HeliumState == 3 then MouseWheel(454,68,true)
+	-- elseif HeliumState == 4 then MouseWheel(568,406,true)
+	-- elseif HeliumState == 5 then MouseWheel(568,406,true)
+	-- elseif HeliumState == 6 then MouseWheel(568,406,true)	
+	else
+		MouseWheel(568,406,true) 
+		HeliumState = 0 
+	end
+	HeliumState = HeliumState + 1
 end
 
 ----------------------------------------------------------
@@ -168,6 +194,71 @@ function Focus (direction)
 			hs.window.filter.defaultCurrentSpace:focusWindowWest(nil,true,true)
 		end
 	end
+end
+
+----------------------------------------------------------
+----------------------------------------------------------
+---------------------Mouse Manipulation-------------------
+----------------------------------------------------------
+----------------------------------------------------------
+
+
+function MoveMouse (x,y,absolute)
+	mouse = {}
+	mouse["x"] = x
+	mouse["y"] = y
+	if absolute == nil then absolute = false end
+	if absolute then 
+		hs.mouse.setAbsolutePosition(mouse)
+	else
+		hs.mouse.setRelativePosition(mouse)
+	end
+end
+
+function MouseWheel (x,y,unit,mods)
+	if mods == nil then mods = {} end
+	if unit == nil then unit = "line" end
+	if unit == true then unit = "pixel" else unit = "line" end
+	hs.eventtap.event.newScrollEvent({-x,0},mods,unit):post()
+	hs.eventtap.event.newScrollEvent({0,-y},mods,unit):post()
+end
+
+----------------------------------------------------------
+-------------------Circle around Mouse--------------------
+----------------------------------------------------------
+--------------Taken from Hammerspoon docs-----------------
+----------------------------------------------------------
+--Rewrite so circle follows mouse change shape/color of circle/square 
+local mouseCircle = nil
+local mouseCircleTimer = nil
+
+function MouseHighlight()
+	if mouseCircle then 
+		mouseCircle:delete()
+		if mouseCircleTimer then 
+			mouseCircleTimer:stop()
+		end
+	end
+	mousepoint = hs.mouse.getAbsolutePosition()
+	mouseCircle = hs.drawing.circle(
+		hs.geometry.rect(mousepoint.x - 40, mousepoint.y - 40, 80, 80))
+	mouseCircle:setStrokeColor({["red"]=1,["blue"]=0,["green"]=0,["alpha"]=1})
+	mouseCircle:setFill(false)
+	mouseCircle:setStrokeWidth(5)
+	mouseCircle:show()
+
+	mouseCircleTimer = hs.timer.doAfter(3, function () mouseCircle:delete() end)
+end
+
+----------------------------------------------------------
+-------------------------Reset Mouse----------------------
+----------------------------------------------------------
+function ResetMouse (absolute)
+	return function ()
+		MoveMouse(ScreenFrame().w * .5, ScreenFrame ().h * .5,absolute)
+		MouseHighlight()
+	end
+
 end
 
 ----------------------------------------------------------
@@ -472,37 +563,6 @@ end
 
 ----------------------------------------------------------
 ----------------------------------------------------------
---------------------------Mouse---------------------------
-----------------------------------------------------------
-----------------------------------------------------------
-
-----------------------------------------------------------
---------------Taken from Hammerspoon docs-----------------
-----------------------------------------------------------
---Rewrite so circle follows mouse change shape/color of circle/square 
-local mouseCircle = nil
-local mouseCircleTimer = nil
-
-function mouseHighlight()
-	if mouseCircle then 
-		mouseCircle:delete()
-		if mouseCircleTimer then 
-			mouseCircleTimer:stop()
-		end
-	end
-	mousepoint = hs.mouse.getAbsolutePosition()
-	mouseCircle = hs.drawing.circle(
-		hs.geometry.rect(mousepoint.x - 40, mousepoint.y - 40, 80, 80))
-	mouseCircle:setStrokeColor({["red"]=1,["blue"]=0,["green"]=0,["alpha"]=1})
-	mouseCircle:setFill(false)
-	mouseCircle:setStrokeWidth(5)
-	mouseCircle:show()
-
-	mouseCircleTimer = hs.timer.doAfter(3, function () mouseCircle:delete() end)
-end
-
-----------------------------------------------------------
-----------------------------------------------------------
 ----------------------Key Bindings------------------------
 ----------------------------------------------------------
 ----------------------------------------------------------
@@ -515,7 +575,8 @@ hs.hotkey.bind(shiftCmdAltCtrl,"r",hs.toggleConsole)
 
 --Window Management
 hs.hotkey.bind(cmdAltCtrl,"`",nil,FullScreen)
-hs.hotkey.bind(shiftCmdAltCtrl,"`",nil,CenterScreen)
+hs.hotkey.bind(shiftCmdAltCtrl,"`",nil,CenterScreen,ResetCenterScreenState)
+hs.hotkey.bind(cmdAltCtrl,"escape",HeliumScreen)
 
 hs.hotkey.bind(cmdAltCtrl,"up",nil,HalfWindow(0,0,1,.5))
 hs.hotkey.bind(cmdAltCtrl,"down",nil,HalfWindow(0,.5,1,.5))
@@ -567,7 +628,8 @@ hs.hotkey.bind(cmdAltCtrl,"f3",HideUnopenApps)
 hs.hotkey.bind(cmdAltCtrl,"f4",ShowAllFiles)
 
 --Mouse
-hs.hotkey.bind(cmdAltCtrl, "/", mouseHighlight)
+hs.hotkey.bind(cmdAltCtrl, "/", MouseHighlight,nil,ResetMouse(false))
+hs.hotkey.bind(shiftCmdAltCtrl, "/", ResetMouse(true))
 
 --Applications 
 hs.hotkey.bind(cmdAltCtrl, "-", BindLaunchApplication("Adobe Illustrator"))
