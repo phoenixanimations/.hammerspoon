@@ -4,6 +4,7 @@
 --hs.help("")
 --Don't forget you have shift + f1 and just f1
 --Maybe re add redshift?
+--Maybe add in mouse that anything you hover over becomes focused without having to click. 
 
 spaces = require("hs._asm.undocumented.spaces")
 ----------------------------------------------------------
@@ -133,8 +134,8 @@ local HeliumState = 1
 function HeliumScreen ()
 	LaunchApplication ("Helium")
 	Adjust (ScreenFrame().w - 60,0,60,50)
+	MoveMouse(Win():frame().x,Win():frame().y)
 	MoveMouse(ScreenFrame().w - 30,38)
-	
 	MouseWheel(-1000,-1000)
 	if HeliumState == 1 then MouseWheel(568,406,true)
 	elseif HeliumState == 2 then MouseWheel(568,406,true)	
@@ -168,6 +169,8 @@ function SwapWindows ()
 		local tempFrame = window[1]:frame()
 		window[1]:setFrame(window[2]:frame())
 		window[2]:setFrame(tempFrame)
+		window[1]:focus()
+		window[2]:focus()
 	else
 		if (window[1] == window[2]) then Alert("Window 1 == Window 2") end
 		if (window[1] == nil) then Alert("Window 1 is Null") end
