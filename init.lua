@@ -1,10 +1,11 @@
 -- DEBUG: hs.inspect.inspect
 -- For certain apps you could disable keybindings. 
 -- for i,v in pairs(t) do print(i,v) end
---hs.help("")
---Don't forget you have shift + f1 and just f1
---Maybe re add redshift?
---Maybe add in mouse that anything you hover over becomes focused without having to click. 
+-- hs.help("")
+-- Don't forget you have shift + f1 and just f1
+-- Maybe re add redshift?
+-- Maybe add in mouse that anything you hover over becomes focused without having to click. 
+-- Add quick focus
 
 spaces = require("hs._asm.undocumented.spaces")
 ----------------------------------------------------------
@@ -130,6 +131,12 @@ function ResetCenterScreenState ()
 end
 
 local HeliumState = 1
+
+function HeliumScrollDefault()
+	MouseWheel(-1000,-1000)
+	MouseWheel(568,406,true)
+end
+
 function HeliumScroll ()
 	MouseWheel(-1000,-1000)
 	if HeliumState == 1 then MouseWheel(568,406,true)
@@ -153,7 +160,7 @@ end
 function HeliumFollowsMouse ()
 	LaunchApplication ("Helium")
 	local point = hs.mouse.getAbsolutePosition()
-	Adjust (point.x - 30,point.y - 30,60,50)
+	Adjust (point.x - 30 - ScreenFrame().x,point.y - 30 - ScreenFrame().y,60,50)
 	HeliumScroll ()
 end
 
@@ -253,6 +260,33 @@ function Focus (direction)
 		if direction == "West" then
 			hs.window.filter.defaultCurrentSpace:focusWindowWest(nil,true,true)
 		end
+	end
+end
+
+local setFocusState = {}
+
+function SetCustomFocus (i)
+	setFocusState[i] = Win()
+	Alert ("Set: " .. tostring(setFocusState[i]))
+end
+
+function CustomFocus (i) 
+	if setFocusState[i] == nil then SetCustomFocus (i) end
+	if type(setFocusState[i]) == "userdata" then 
+		setFocusState[i]:focus()
+	end
+end
+
+function BindCustomFocus (i)
+	return function ()
+		CustomFocus(i)
+	end
+end
+
+function BindResetFocusState (i)
+	return function ()
+		setFocusState[i] = nil
+		Alert ("Custom Focused [" .. tostring(i) .. "] is null")
 	end
 end
 
@@ -572,11 +606,6 @@ function BindLaunchApplication (application)
 	end
 end
 
-function LaunchiTunesAndiTunesAlarm ()
-	LaunchApplication("iTunes")
-	LaunchApplication("iTunes Alarm")
-end
-
 ----------------------------------------------------------
 ------------------Multiple Applications-------------------
 ----------------------------------------------------------
@@ -633,8 +662,8 @@ hs.hotkey.bind(shiftCmdAltCtrl,"r",hs.toggleConsole)
 --Window Management
 hs.hotkey.bind(cmdAltCtrl,"`",nil,FullScreen)
 hs.hotkey.bind(shiftCmdAltCtrl,"`",nil,CenterScreen,ResetCenterScreenState)
-hs.hotkey.bind(cmdAltCtrl,"escape",HeliumFollowsMouse)
-hs.hotkey.bind(shiftCmdAltCtrl,"escape",HeliumScreen)
+hs.hotkey.bind(cmdAltCtrl,"escape",HeliumFollowsMouse,nil,HeliumScrollDefault)
+hs.hotkey.bind(shiftCmdAltCtrl,"escape",HeliumScreen,nil,HeliumScrollDefault)
 
 hs.hotkey.bind(cmdAltCtrl,"up",nil,BindHalfWindow(0,0,1,.5))
 hs.hotkey.bind(cmdAltCtrl,"down",nil,BindHalfWindow(0,.5,1,.5))
@@ -677,6 +706,12 @@ hs.hotkey.bind(cmdAltCtrl,"s",Focus("South"))
 hs.hotkey.bind(cmdAltCtrl,"a",Focus("West"))
 hs.hotkey.bind(cmdAltCtrl,"d",Focus("East"))
 
+--Custom Focus
+hs.hotkey.bind(cmdAltCtrl,"e",BindCustomFocus(1),nil,BindResetFocusState(1))
+hs.hotkey.bind(cmdAltCtrl,"f1",BindCustomFocus(2),nil,BindResetFocusState(2))
+hs.hotkey.bind(cmdAltCtrl,"f2",BindCustomFocus(3),nil,BindResetFocusState(3))
+hs.hotkey.bind(shiftCmdAltCtrl,"e",BindCustomFocus(4),nil,BindResetFocusState(4))
+
 --Spaces
 hs.hotkey.bind({"ctrl","shift"}, "up", ToggleKillallDock) 
 hs.hotkey.bind({"ctrl","shift"},"left", LeftSpace)
@@ -703,8 +738,9 @@ hs.hotkey.bind(cmdAltCtrl, "-", BindLaunchApplication("Adobe Illustrator"))
 hs.hotkey.bind(cmdAltCtrl, "=", BindLaunchApplication("Adobe After Effects CS6"))
 hs.hotkey.bind(cmdAltCtrl, "\\", BindLaunchApplication("Finder"))
 hs.hotkey.bind(cmdAltCtrl, "[", BindLaunchApplication("StoryMill"))
-hs.hotkey.bind(cmdAltCtrl, "]", LaunchiTunesAndiTunesAlarm)
-hs.hotkey.bind(cmdAltCtrl, ";", BindLaunchApplication("Maya"))
+hs.hotkey.bind(cmdAltCtrl, "]", BindLaunchApplication("SourceTree"))
+hs.hotkey.bind(cmdAltCtrl, ";", BindLaunchApplication("iTunes"))
+hs.hotkey.bind(cmdAltCtrl, "'", BindLaunchApplication("Maya"))
 
 --Load Multiple Applications
 local ApplicationTable = {"Adobe Illustrator","Adobe After Effects CS6","StoryMill","Preview","SourceTree","iTunes","iTunes Alarm","Activity Monitor","Time Sink"}
