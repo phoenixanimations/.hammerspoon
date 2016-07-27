@@ -26,6 +26,13 @@ function Alert (message, seconds)
 	hs.alert.show(tostring(message),_seconds)
 end
 
+function Console ()
+	hs.toggleConsole()
+	-- hs.consoleOnTop(true)
+end
+
+hs.hints.hintChars = {"1", "2", "3", "Q", "W", "E", "A", "S", "D", "Z", "X", "C", "R", "T", "Y", "F", "G", "H", "V", "B", "N", "U", "J", "M", "I", "K"}
+
 ----------------------------------------------------------
 ----------------------------------------------------------
 -------------------------Error----------------------------
@@ -140,11 +147,12 @@ end
 function HeliumScroll ()
 	MouseWheel(-1000,-1000)
 	if HeliumState == 1 then MouseWheel(568,406,true)
+	elseif HeliumState == 2 then MouseWheel(568,420,true)	
 	elseif HeliumState == 2 then MouseWheel(454,68,true)
 	elseif HeliumState == 3 then MouseWheel(358,70,true)	
 	else
 		MouseWheel(568,406,true) 
-		HeliumState = 0 
+		HeliumState = 1 
 	end
 	HeliumState = HeliumState + 1
 end
@@ -270,10 +278,16 @@ function SetCustomFocus (i)
 	Alert ("Set: " .. tostring(setFocusState[i]))
 end
 
+local lastWindow = {}
 function CustomFocus (i) 
 	if setFocusState[i] == nil then SetCustomFocus (i) end
-	if type(setFocusState[i]) == "userdata" then 
+
+	if not (Win() == setFocusState[i]) then 
+		lastWindow[i] = Win() 
 		setFocusState[i]:focus()
+		
+	elseif Win() == setFocusState[i] then 
+		lastWindow[i]:focus()
 	end
 end
 
@@ -657,7 +671,7 @@ local cmdAltCtrl = {"cmd","alt","ctrl"}
 
 --Hammerspoon
 hs.hotkey.bind(cmdAltCtrl,"r",hs.reload)
-hs.hotkey.bind(shiftCmdAltCtrl,"r",hs.toggleConsole)
+hs.hotkey.bind(shiftCmdAltCtrl,"r",Console)
 
 --Window Management
 hs.hotkey.bind(cmdAltCtrl,"`",nil,FullScreen)
