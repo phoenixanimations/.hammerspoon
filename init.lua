@@ -6,8 +6,14 @@
 -- Maybe re add redshift?
 -- Maybe add in mouse that anything you hover over becomes focused without having to click. 
 -- Add quick focus
+-- Maybe when you switch to different applications that use f1 the hotkeys change from just f1 to alt+cmd+ctrl + f1 
+-- Make your own spaces. 
+-- function GetWindow () Alert(Win():application():name()) end
+-- hs.hotkey.bind(cmdAltCtrl,"1",GetWindow)
+-- Remember the Helium timer effect, you can set a timer to make it so when you hold a key down for a long time it switches states.
 
 spaces = require("hs._asm.undocumented.spaces")
+bluetooth = require("hs._asm.undocumented.bluetooth")
 ----------------------------------------------------------
 ----------------------------------------------------------
 --------------------------Config--------------------------
@@ -15,6 +21,7 @@ spaces = require("hs._asm.undocumented.spaces")
 ----------------------------------------------------------
 hs.window.animationDuration = 0
 hs.window.setFrameCorrectness = false
+hs.hints.hintChars = {"1", "2", "3", "Q", "W", "E", "A", "S", "D", "Z", "X", "C", "R", "T", "Y", "F", "G", "H", "V", "B", "N", "U", "J", "M", "I", "K"}
 
 ----------------------------------------------------------
 ----------------------------------------------------------
@@ -26,12 +33,18 @@ function Alert (message, seconds)
 	hs.alert.show(tostring(message),_seconds)
 end
 
+function BindAlert (message, seconds)
+	return function () Alert(message,seconds) end
+end
+
 function Console ()
 	hs.toggleConsole()
 	-- hs.consoleOnTop(true)
 end
 
-hs.hints.hintChars = {"1", "2", "3", "Q", "W", "E", "A", "S", "D", "Z", "X", "C", "R", "T", "Y", "F", "G", "H", "V", "B", "N", "U", "J", "M", "I", "K"}
+function Timer (seconds,func)
+	hs.timer.doAfter(seconds, func)
+end
 
 ----------------------------------------------------------
 ----------------------------------------------------------
@@ -137,41 +150,6 @@ function ResetCenterScreenState ()
 	Alert("Center Screen State = 0")
 end
 
-local HeliumState = 1
-
-function HeliumScrollDefault()
-	MouseWheel(-1000,-1000)
-	MouseWheel(568,406,true)
-end
-
-function HeliumScroll ()
-	MouseWheel(-1000,-1000)
-	if HeliumState == 1 then MouseWheel(568,406,true)
-	elseif HeliumState == 2 then MouseWheel(568,420,true)	
-	elseif HeliumState == 2 then MouseWheel(454,68,true)
-	elseif HeliumState == 3 then MouseWheel(358,70,true)	
-	else
-		MouseWheel(568,406,true) 
-		HeliumState = 1 
-	end
-	HeliumState = HeliumState + 1
-end
-
-function HeliumScreen ()
-	LaunchApplication ("Helium")
-	Adjust (ScreenFrame().w - 60,0,60,50)
-	MoveMouse(Win():frame().x,Win():frame().y)
-	MoveMouse(ScreenFrame().w - 30,38)
-	HeliumScroll ()
-end
-
-function HeliumFollowsMouse ()
-	LaunchApplication ("Helium")
-	local point = hs.mouse.getAbsolutePosition()
-	Adjust (point.x - 30 - ScreenFrame().x,point.y - 30 - ScreenFrame().y,60,50)
-	HeliumScroll ()
-end
-
 function BindHalfWindow (x,y,w,h)
 	return function ()
 		Adjust (x * ScreenFrame().w , y * ScreenFrame().h, w * ScreenFrame().w , h * ScreenFrame().h)
@@ -180,6 +158,74 @@ end
 
 function BindFourthWindow (x,y,w,h)
 	return BindHalfWindow (x,y,w,h)
+end
+
+----------------------------------------------------------
+------------------------Helium----------------------------
+------------------------Syrnia----------------------------
+----------------------------------------------------------
+local HeliumState = 0
+local HeliumDebugState = false
+
+function HeliumAlert (message, time)
+	if HeliumDebugState then Alert(message,time) end
+end
+
+function HeliumScroll ()
+	HeliumState = HeliumState + 1
+	MouseWheel(-1000,-1000)
+	if HeliumState == 1 then MouseWheel(568,406,true) -- Fishing
+	elseif HeliumState == 2 then MouseWheel(568,420,true) -- Woodcutting
+	elseif HeliumState == 3 then MouseWheel(454,68,true) -- Walking
+	elseif HeliumState == 4 then MouseWheel(360,68,true) -- Sailing
+	else
+		HeliumState = 0
+		HeliumAlert ("Reset")
+	end	
+	HeliumAlert (HeliumState)
+end
+
+function MouseFollowsHelium ()
+	local point = {}
+	LaunchApplication ("Helium")
+	
+	point["x"] = Win():frame().x + 20
+	point["y"] = Win():frame().y + 30
+	hs.mouse.set(point)
+end
+
+-- Bind:
+function HeliumResetScreenScroll (windowFrame)
+	return function () 
+		Win():setFrame(windowFrame) 
+		MouseFollowsHelium ()
+		MouseWheel(568,406,true)
+	end
+end
+
+function HeliumScreen ()
+	LaunchApplication ("Helium")
+	local windowFrame = Win():frame()
+
+	if (windowFrame.w == 60) and (windowFrame.h == 50) then
+		FullScreen()
+		Alert ("0")
+		hs.timer.doAfter(1, BindAlert("1"))
+		hs.timer.doAfter(2, BindAlert("2"))
+		hs.timer.doAfter(3, BindAlert("3"))
+		hs.timer.doAfter(4, BindAlert("END"))
+		hs.timer.doAfter(6, HeliumResetScreenScroll(windowFrame))
+	else
+		Alert("Press cmd + alt + ctrl + esc") 
+	end
+	
+end
+
+function HeliumFollowsMouse ()
+	LaunchApplication ("Helium")
+	local point = hs.mouse.getAbsolutePosition()
+	Adjust (point.x - 30 - ScreenFrame().x,point.y - 30 - ScreenFrame().y,60,50)
+	HeliumScroll ()
 end
 
 ----------------------------------------------------------
@@ -272,15 +318,14 @@ function Focus (direction)
 end
 
 local setFocusState = {}
-
-function SetCustomFocus (i)
-	setFocusState[i] = Win()
-	Alert ("Set: " .. tostring(setFocusState[i]))
-end
-
 local lastWindow = {}
+
 function CustomFocus (i) 
-	if setFocusState[i] == nil then SetCustomFocus (i) end
+	if setFocusState[i] == nil then 
+		setFocusState[i] = Win()
+		lastWindow[i] = Win()
+		Alert ("Set: " .. tostring(setFocusState[i]))
+	end
 
 	if not (Win() == setFocusState[i]) then 
 		lastWindow[i] = Win() 
@@ -438,6 +483,21 @@ end
 
 ----------------------------------------------------------
 ----------------------------------------------------------
+-------------------------Bluetooth------------------------
+----------------------------------------------------------
+----------------------------------------------------------
+function ToggleBluetooth ()
+	local bluetoothPower = bluetooth.power()
+	bluetooth.power(not bluetoothPower)
+	Alert ("Bluetooth: " .. tostring(bluetooth.power()))
+end
+
+function GetBluetooth ()
+	Alert("Bluetooth: " .. tostring(bluetooth.power()))
+end
+
+----------------------------------------------------------
+----------------------------------------------------------
 --------------------------Time----------------------------
 ----------------------------------------------------------
 ----------------------------------------------------------
@@ -535,7 +595,7 @@ local MotivationState = 0
 function Motivation ()
 	if MotivationState == 0 then Alert("Amateurs sit and wait for inspiration, the rest of us just get up and go to work.",360)
 	elseif MotivationState == 1 then Alert("All men dream, but not equally. Those who dream by night in the dusty recesses of their minds, \nwake in the day to find that it was vanity: but the dreamers of the day are dangerous men, \nfor they may act on their dreams with open eyes, to make them possible.",360)
-	elseif MotivationState == 2 then Alert("Action is the foundational key to all success.",360)
+	elseif MotivationState == 2 then Alert("I cannot remember a night so dark as to have hindered the coming day: \nnor a storm so furious or dreadful as to prevent the return of warm sunshine and a cloudless sky. \nBut beloved ones do remember that this is not your rest; that in this world you have no abiding place or continuing city. \nTo God and his infinite mercy I always commend you.",360)
 	elseif MotivationState == 3 then Alert("There is no substitute for hard work.",360)
 	elseif MotivationState == 4 then Alert("Focused, hard work is the real key to success. \nKeep your eyes on the goal, and \njust keep taking the next step towards completing it.",360)
 	elseif MotivationState == 5 then Alert("Opportunities are usually disguised as hard work, \nso most people don't recognize them.",360)
@@ -676,8 +736,8 @@ hs.hotkey.bind(shiftCmdAltCtrl,"r",Console)
 --Window Management
 hs.hotkey.bind(cmdAltCtrl,"`",nil,FullScreen)
 hs.hotkey.bind(shiftCmdAltCtrl,"`",nil,CenterScreen,ResetCenterScreenState)
-hs.hotkey.bind(cmdAltCtrl,"escape",HeliumFollowsMouse,nil,HeliumScrollDefault)
-hs.hotkey.bind(shiftCmdAltCtrl,"escape",HeliumScreen,nil,HeliumScrollDefault)
+hs.hotkey.bind(cmdAltCtrl,"escape",HeliumFollowsMouse,nil,nil) --HeliumScrollDebug)
+hs.hotkey.bind(shiftCmdAltCtrl,"escape",HeliumScreen,nil,nil) --HeliumScrollDebug)
 
 hs.hotkey.bind(cmdAltCtrl,"up",nil,BindHalfWindow(0,0,1,.5))
 hs.hotkey.bind(cmdAltCtrl,"down",nil,BindHalfWindow(0,.5,1,.5))
@@ -731,6 +791,9 @@ hs.hotkey.bind({"ctrl","shift"}, "up", ToggleKillallDock)
 hs.hotkey.bind({"ctrl","shift"},"left", LeftSpace)
 hs.hotkey.bind({"ctrl","shift"},"right", RightSpace)
 
+--Bluetooth
+hs.hotkey.bind(cmdAltCtrl,"b", ToggleBluetooth)
+
 --Battery Notification
 hs.hotkey.bind({}, "f12", BatteryNotification)
 hs.hotkey.bind({"shift"}, "f12", TimeNotification)
@@ -757,7 +820,7 @@ hs.hotkey.bind(cmdAltCtrl, ";", BindLaunchApplication("iTunes"))
 hs.hotkey.bind(cmdAltCtrl, "'", BindLaunchApplication("Maya"))
 
 --Load Multiple Applications
-local ApplicationTable = {"Adobe Illustrator","Adobe After Effects CS6","StoryMill","Preview","SourceTree","iTunes","iTunes Alarm","Activity Monitor","Time Sink"}
+local ApplicationTable = {"Adobe Illustrator","Adobe After Effects CS6","Preview","StoryMill","HyperPlan","SourceTree","iTunes","iTunes Alarm","Activity Monitor","Time Sink"}
 hs.hotkey.bind(cmdAltCtrl, "delete", BindLoadMultipleApps(ApplicationTable))
 hs.hotkey.bind(shiftCmdAltCtrl, "delete", AutoSortApps)
 
@@ -779,4 +842,5 @@ function Greetings ()
 end
 
 MultipleNewSpaces(3)
+GetBluetooth()
 Greetings()
