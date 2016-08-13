@@ -208,8 +208,9 @@ function HeliumScreen ()
 		FullScreen()
 	else
 		Win():setFrame(resetFrame) 
+		HeliumState = HeliumState - 1
 		MouseFollowsHelium ()
-		MouseWheel(568,406,true)
+		HeliumScroll ()
 	end
 end
 
@@ -326,6 +327,10 @@ function CustomFocus (i)
 	elseif Win() == setFocusState[i] then 
 		lastWindow[i]:focus()
 	end
+end
+
+function LastWindowFocus () 
+	hs.window.orderedWindows()[#hs.window.orderedWindows()]:focus()
 end
 
 function BindCustomFocus (i)
@@ -486,7 +491,8 @@ end
 
 function GetBluetooth ()
 	if bluetooth.power() then
-		Alert("Bluetooth: " .. tostring(bluetooth.power()))
+		hs.notify.new({title="Bluetooth", informativeText="Bluetooth is enabled", hasActionButton = false}):send()
+		Alert("Bluetooth: " .. "is enabled")
 	end
 end
 
@@ -522,8 +528,8 @@ function Time ()
 		hour = "00"
 	end
 
-	return "Date: " .. AddZero(month) .. "/" .. AddZero(day) .. "/" .. year .. 
-		   "\nTime: " .. hour .. ":" .. AddZero(min) .. " " .. am, 
+	return "Date: " .. os.date("%m/%d/%Y: %A, %B") ..
+		   "\nTime: " .. os.date("%I:%M") .. am, 
 		   {hour, min, day, month, year}
 end
 
@@ -779,6 +785,9 @@ hs.hotkey.bind(cmdAltCtrl,"e",BindCustomFocus(1),nil,BindResetFocusState(1))
 hs.hotkey.bind(cmdAltCtrl,"f1",BindCustomFocus(2),nil,BindResetFocusState(2))
 hs.hotkey.bind(cmdAltCtrl,"f2",BindCustomFocus(3),nil,BindResetFocusState(3))
 hs.hotkey.bind(shiftCmdAltCtrl,"e",BindCustomFocus(4),nil,BindResetFocusState(4))
+hs.hotkey.bind(cmdAltCtrl,"q",BindCustomFocus(5),nil,BindResetFocusState(5))
+hs.hotkey.bind(shiftCmdAltCtrl,"q",BindCustomFocus(6),nil,BindResetFocusState(6))
+hs.hotkey.bind(cmdAltCtrl,"z",LastWindowFocus)
 
 --Spaces
 hs.hotkey.bind({"ctrl","shift"}, "up", ToggleKillallDock) 
@@ -814,11 +823,10 @@ hs.hotkey.bind(cmdAltCtrl, ";", BindLaunchApplication("iTunes"))
 hs.hotkey.bind(cmdAltCtrl, "'", BindLaunchApplication("Maya"))
 
 --Load Multiple Applications
--- local HyperPlanTimeSink = "/Applications/HyperPlan/Time Sink/Time Sink.app/"
--- local HyperPlanScenes = "/Applications/HyperPlan/Ladybug - Scenes/Scenes.app/"
 local HyperPlanTimeSink = "/Volumes/Good Times/Ladybug/HyperPlan/Time Sink/Time Sink.app/"
-local HyperPlanScenes  = "/Volumes/Good Times/Ladybug/HyperPlan/Ladybug - Scenes/Scenes.app/"
-local ApplicationTable = {"Adobe Illustrator","Adobe After Effects CS6","Preview","StoryMill",HyperPlanTimeSink,HyperPlanScenes,"SourceTree","iTunes","iTunes Alarm","Activity Monitor","Time Sink"}
+local HyperPlanScenes  = "/Volumes/Good Times/Ladybug/HyperPlan/StoryMill/StoryMill.app/"
+local Habitica = "/Applications/Habitica.app/"
+local ApplicationTable = {"Adobe Illustrator","Adobe After Effects CS6","Preview","StoryMill",HyperPlanScenes,"Time Sink",HyperPlanTimeSink,"SourceTree",Habitica,"iTunes","iTunes Alarm","Activity Monitor"}
 hs.hotkey.bind(cmdAltCtrl, "delete", BindLoadMultipleApps(ApplicationTable))
 hs.hotkey.bind(shiftCmdAltCtrl, "delete", AutoSortApps)
 
