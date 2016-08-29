@@ -202,6 +202,7 @@ local resetFrame = {}
 function HeliumScreen ()
 	LaunchApplication ("Helium")
 	local windowFrame = Win():frame()
+	local mouse = hs.mouse.getAbsolutePosition()
 
 	if (windowFrame.w == 60) and (windowFrame.h == 50) then
 		resetFrame = Win():frame()
@@ -212,6 +213,8 @@ function HeliumScreen ()
 		MouseFollowsHelium ()
 		HeliumScroll ()
 	end
+
+	hs.mouse.setAbsolutePosition(mouse)
 end
 
 function HeliumFollowsMouse ()
@@ -597,7 +600,7 @@ end
 local MotivationState = 0
 
 function Motivation ()
-	MotivationState = math.random(23)
+	MotivationState = math.random(24)
 	if MotivationState == 1 then Alert("Amateurs sit and wait for inspiration, the rest of us just get up and go to work.",360)
 	elseif MotivationState == 2 then Alert("All men dream, but not equally. Those who dream by night in the dusty recesses of their minds, \nwake in the day to find that it was vanity: but the dreamers of the day are dangerous men, \nfor they may act on their dreams with open eyes, to make them possible.",360)
 	elseif MotivationState == 3 then Alert("I cannot remember a night so dark as to have hindered the coming day: \nnor a storm so furious or dreadful as to prevent the return of warm sunshine and a cloudless sky. \nBut beloved ones do remember that this is not your rest; that in this world you have no abiding place or continuing city. \nTo God and his infinite mercy I always commend you.",360)
@@ -621,6 +624,7 @@ function Motivation ()
 	elseif MotivationState == 21 then Alert("There is an art, it says, or rather, a knack to flying. \nThe knack lies in learning how to throw yourself at the ground and miss.",360)
 	elseif MotivationState == 22 then Alert("It is no coincidence that in no known language does the phrase 'As pretty as an Airport' appear.",360)
 	elseif MotivationState == 23 then Alert("He felt that his whole life was some kind of dream \nand he sometimes wondered whose it was and whether they were enjoying it.",360)
+	elseif MotivationState == 24 then Alert("One's destination is never a place but rather\n a new way of looking at things.",360)
 	else Alert("Woo!")
 	end
 end
@@ -821,6 +825,7 @@ hs.hotkey.bind(cmdAltCtrl, "[", BindLaunchApplication("StoryMill"))
 hs.hotkey.bind(cmdAltCtrl, "]", BindLaunchApplication("SourceTree"))
 hs.hotkey.bind(cmdAltCtrl, ";", BindLaunchApplication("iTunes"))
 hs.hotkey.bind(cmdAltCtrl, "'", BindLaunchApplication("Maya"))
+hs.hotkey.bind(cmdAltCtrl, "y", BindLaunchApplication("/Volumes/Good Times/With Fandagled Technology/With Gizmos/Terminal/youtube-dl.app/"))
 
 --Load Multiple Applications
 local HyperPlanTimeSink = "/Volumes/Good Times/Ladybug/HyperPlan/Time Sink/Time Sink.app/"
