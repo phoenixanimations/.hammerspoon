@@ -28,9 +28,25 @@ hs.hints.hintChars = {"1", "2", "3", "Q", "W", "E", "A", "S", "D", "Z", "X", "C"
 -----------------------Hammerspoon------------------------
 ----------------------------------------------------------
 ----------------------------------------------------------
+function formatUpToX(s, x, indent)
+  x = x or 79
+  indent = indent or ""
+  local t = {""}
+  local function cleanse(s) return s:gsub("@x%d%d%d",""):gsub("@r","") end
+  for prefix, word, suffix, newline in s:gmatch("([ \t]*)(%S*)([ \t]*)(\n?)") do
+    if #(cleanse(t[#t])) + #prefix + #cleanse(word) > x and #t > 0 then
+      table.insert(t, word..suffix) -- add new element
+    else -- add to the last element
+      t[#t] = t[#t]..prefix..word..suffix
+    end
+    if #newline > 0 then table.insert(t, "") end
+  end
+  return indent..table.concat(t, "\n"..indent)
+end
+
 function Alert (message, seconds)
 	local _seconds = seconds or 2
-	hs.alert.show(tostring(message),_seconds)
+	hs.alert.show(tostring(formatUpToX(message, 100)),_seconds)
 end
 
 function BindAlert (message, seconds)
@@ -38,11 +54,7 @@ function BindAlert (message, seconds)
 end
 
 function Console ()
-	local hour = (os.date("*t"))["hour"]
-	if ((os.date("*t"))["hour"] >= 0 and (os.date("*t"))["hour"] <= 7) or ((os.date("*t"))["hour"] >= 20 and (os.date("*t"))["hour"] <= 23) then
-		hs.toggleConsole()
-		-- hs.consoleOnTop(true)
-	end
+	hs.toggleConsole()
 end
 
 function Timer (seconds,func)
@@ -67,6 +79,9 @@ end
 --------------------Window Manipulation-------------------
 ----------------------------------------------------------
 ----------------------------------------------------------
+function bindWindowHints (windows,callback,allowNonStandard)
+	return function () hs.hints.windowHints(windows,callback,allowNonStandard) end
+end
 
 ----------------------------------------------------------
 --------------------------Null----------------------------
@@ -108,6 +123,8 @@ end
 function Adjust (x,y,w,h)
 	if NullErrorWindow () then return end 
 	local frame = Win():frame()
+	if x == nil then x = Win():frame().x end
+	if y == nil then y = Win():frame().y end
 	if w == nil then w = Win():frame().w end
 	if h == nil then h = Win():frame().h end
 
@@ -128,7 +145,11 @@ function SquareWindow (size)
 end
 
 function FullScreen ()
-	Adjust (0,0,ScreenFrame().w,ScreenFrame().h)
+	if Win():screen() == hs.screen.primaryScreen() then 
+		Adjust (-4,0,ScreenFrame().w + 4,ScreenFrame().h)
+	else 
+		Adjust (0,0,ScreenFrame().w,ScreenFrame().h)
+	end
 end
 
 local CenterScreenState = 0
@@ -180,7 +201,10 @@ function HeliumScroll ()
 	if HeliumState == 1 then MouseWheel(568,406,true) -- Fishing
 	elseif HeliumState == 2 then MouseWheel(568,420,true) -- Woodcutting
 	elseif HeliumState == 3 then MouseWheel(454,68,true) -- Walking
-	elseif HeliumState == 4 then MouseWheel(360,68,true) -- Sailing
+	elseif HeliumState == 4 then MouseWheel(361,68,true) -- Sailing
+	elseif HeliumState == 5 then 
+		Adjust (nil,nil,200,190)
+		MouseWheel(202,122,true)
 	else
 		HeliumState = 0
 		HeliumAlert ("Reset")
@@ -199,22 +223,25 @@ end
 
 -- Bind:
 local resetFrame = {}
+local previousWindow
+local heliumScreenReset = true
 function HeliumScreen ()
 	LaunchApplication ("Helium")
 	local windowFrame = Win():frame()
 	local mouse = hs.mouse.getAbsolutePosition()
-
-	if (windowFrame.w == 60) and (windowFrame.h == 50) then
+	if heliumScreenReset then
 		resetFrame = Win():frame()
 		FullScreen()
+		heliumScreenReset = false
 	else
 		Win():setFrame(resetFrame) 
 		HeliumState = HeliumState - 1
 		MouseFollowsHelium ()
 		HeliumScroll ()
+		heliumScreenReset = true
 	end
-
 	hs.mouse.setAbsolutePosition(mouse)
+	Motivation()
 end
 
 function HeliumFollowsMouse ()
@@ -598,33 +625,30 @@ end
 ----------------------------------------------------------
 ----------------------------------------------------------
 local MotivationState = 0
+local MotivationTime = 20
 
 function Motivation ()
-	MotivationState = math.random(24)
-	if MotivationState == 1 then Alert("Amateurs sit and wait for inspiration, the rest of us just get up and go to work.",360)
-	elseif MotivationState == 2 then Alert("All men dream, but not equally. Those who dream by night in the dusty recesses of their minds, \nwake in the day to find that it was vanity: but the dreamers of the day are dangerous men, \nfor they may act on their dreams with open eyes, to make them possible.",360)
-	elseif MotivationState == 3 then Alert("I cannot remember a night so dark as to have hindered the coming day: \nnor a storm so furious or dreadful as to prevent the return of warm sunshine and a cloudless sky. \nBut beloved ones do remember that this is not your rest; that in this world you have no abiding place or continuing city. \nTo God and his infinite mercy I always commend you.",360)
-	elseif MotivationState == 4 then Alert("There is no substitute for hard work.",360)
-	elseif MotivationState == 5 then Alert("Focused, hard work is the real key to success. \nKeep your eyes on the goal, and \njust keep taking the next step towards completing it.",360)
-	elseif MotivationState == 6 then Alert("Opportunities are usually disguised as hard work, \nso most people don't recognize them.",360)
-	elseif MotivationState == 7 then Alert("It's hard to beat a person who never gives up.",360)
-	elseif MotivationState == 8 then Alert("The mind is everything. What you think you become.",360)
-	elseif MotivationState == 9 then Alert("Eighty percent of success is showing up.",360)
-	elseif MotivationState == 10 then Alert("Fall seven times and stand up eight.",360)
-	elseif MotivationState == 11 then Alert("The best time to plant a tree is 20 years ago. \nThe second best time is now.",360)
-	elseif MotivationState == 12 then Alert("We don't make movies to make money, \nwe make money to make more movies.",360)
-	elseif MotivationState == 13 then Alert("A person who chases two rabbits catches neither.",360)
-	elseif MotivationState == 14 then Alert("Inspiration exists, but it has to find you working.",360)
-	elseif MotivationState == 15 then Alert("If there is no wind, row.",360)
-	elseif MotivationState == 16 then Alert("Man cannot remake himself without suffering for he is both the marble and the sculptor.",360)
-	elseif MotivationState == 17 then Alert("A smooth sea never made a skilled sailor.",360)
-	elseif MotivationState == 18 then Alert("Your future self is watching you right now through your memories.",360)
-	elseif MotivationState == 19 then Alert("Why worry?  If you have done the very best you can. Worrying won't make it any better. \nIf you want to be successful, respect one rule - never let failure take control of you. \nEverybody has gone through something that has changed them in a way\n that they could never go back to the person they once were.\n Relations are like electric currents, wrong connections will give you shocks throughtout your life, \nbut the right ones will light you up.",360)
-	elseif MotivationState == 20 then Alert("In '95 I had $7 bucks. By '96 I was wrestling in flea markets for $40 bucks a night (God bless Waffle House).. \nTo #25 on FORBES Top 100 Most Powerful. \nSome of you out there might be going thru your own '$7 bucks in your pocket' situation..\n Embrace the grind, lower your shoulder and keep drivin' thru that motherf*cker. \nChange will come.",360)
-	elseif MotivationState == 21 then Alert("There is an art, it says, or rather, a knack to flying. \nThe knack lies in learning how to throw yourself at the ground and miss.",360)
-	elseif MotivationState == 22 then Alert("It is no coincidence that in no known language does the phrase 'As pretty as an Airport' appear.",360)
-	elseif MotivationState == 23 then Alert("He felt that his whole life was some kind of dream \nand he sometimes wondered whose it was and whether they were enjoying it.",360)
-	elseif MotivationState == 24 then Alert("One's destination is never a place but rather\n a new way of looking at things.",360)
+	MotivationState = math.random(20)
+	if MotivationState == 1 then Alert("Amateurs sit and wait for inspiration, the rest of us just get up and go to work.",MotivationTime)
+	elseif MotivationState == 2  then Alert("All men dream, but not equally. Those who dream by night in the dusty recesses of their minds, wake in the day to find that it was vanity: but the dreamers of the day are dangerous men, for they may act on their dreams with open eyes, to make them possible.",MotivationTime)
+	elseif MotivationState == 3  then Alert("I cannot remember a night so dark as to have hindered the coming day: nor a storm so furious or dreadful as to prevent the return of warm sunshine and a cloudless sky. But beloved ones do remember that this is not your rest; that in this world you have no abiding place or continuing city. To God and his infinite mercy I always commend you.",MotivationTime)
+	elseif MotivationState == 4  then Alert("There is no substitute for hard work.",MotivationTime)
+	elseif MotivationState == 5  then Alert("Focused, hard work is the real key to success. Keep your eyes on the goal, and just keep taking the next step towards completing it.",MotivationTime)
+	elseif MotivationState == 6  then Alert("You want to know how I did it? This is how I did it, I never saved anything for the swim back.",MotivationTime)
+	elseif MotivationState == 7  then Alert("Eighty percent of success is showing up.",MotivationTime)
+	elseif MotivationState == 8  then Alert("The best time to plant a tree is 20 years ago. The second best time is now.",MotivationTime)
+	elseif MotivationState == 9  then Alert("We don't make movies to make money, we make money to make more movies.",MotivationTime)
+	elseif MotivationState == 10 then Alert("A person who chases two rabbits catches neither.",MotivationTime)
+	elseif MotivationState == 11 then Alert("If there is no wind, row.",MotivationTime)
+	elseif MotivationState == 12 then Alert("Man cannot remake himself without suffering for he is both the marble and the sculptor.",MotivationTime)
+	elseif MotivationState == 13 then Alert("A smooth sea never made a skilled sailor.",MotivationTime)
+	elseif MotivationState == 14 then Alert("Your future self is watching you right now through your memories.",MotivationTime)
+	elseif MotivationState == 15 then Alert("Why worry?  If you have done the very best you can. Worrying won't make it any better. If you want to be successful, respect one rule - never let failure take control of you. Everybody has gone through something that has changed them in a way that they could never go back to the person they once were. Relations are like electric currents, wrong connections will give you shocks throughtout your life, but the right ones will light you up.",MotivationTime)
+	elseif MotivationState == 16 then Alert("In '95 I had $7 bucks. By '96 I was wrestling in flea markets for $40 bucks a night (God bless Waffle House).. To #25 on FORBES Top 100 Most Powerful. Some of you out there might be going thru your own '$7 bucks in your pocket' situation.. Embrace the grind, lower your shoulder and keep drivin' thru that motherf*cker. Change will come.",MotivationTime)
+	elseif MotivationState == 17 then Alert("There is an art, it says, or rather, a knack to flying. The knack lies in learning how to throw yourself at the ground and miss.",MotivationTime)
+	elseif MotivationState == 18 then Alert("It is no coincidence that in no known language does the phrase 'As pretty as an Airport' appear.",MotivationTime)
+	elseif MotivationState == 19 then Alert("He felt that his whole life was some kind of dream and he sometimes wondered whose it was and whether they were enjoying it.",MotivationTime)
+	elseif MotivationState == 20 then Alert("In my heart I planted a philosophical seed: “what man wills, he can do”… and now I am watering that seed with my endless tears. Wahhhh",MotivationTime)
 	else Alert("Woo!")
 	end
 end
@@ -754,14 +778,6 @@ hs.hotkey.bind(shiftCmdAltCtrl,"left",nil,BindFourthWindow(0,.5,.5,.5))
 hs.hotkey.bind(shiftCmdAltCtrl,"down",nil,BindFourthWindow(.5,.5,.5,.5))
 hs.hotkey.bind(shiftCmdAltCtrl,"up",nil,BindFourthWindow(0,0,.5,.5))
 
---Helium
-hs.hotkey.bind(cmdAltCtrl,"escape",HeliumScreen,nil,nil) --HeliumScrollDebug)
-hs.hotkey.bind(shiftCmdAltCtrl,"escape",HeliumFollowsMouse,nil,nil) --HeliumScrollDebug)
-
---Swap Windows
-hs.hotkey.bind(cmdAltCtrl,"tab",SwapWindows)
-hs.hotkey.bind(shiftCmdAltCtrl,"tab",SetWindows)
-
 --Transfer Window to monitor
 hs.hotkey.bind(cmdAltCtrl,",",BindTransferWindow("West"))
 hs.hotkey.bind(cmdAltCtrl,".",BindTransferWindow("East"))
@@ -785,13 +801,15 @@ hs.hotkey.bind(cmdAltCtrl,"f",Focus("West"))
 hs.hotkey.bind(cmdAltCtrl,"h",Focus("East"))
 
 --Custom Focus
-hs.hotkey.bind(cmdAltCtrl,"e",BindCustomFocus(1),nil,BindResetFocusState(1))
-hs.hotkey.bind(cmdAltCtrl,"f1",BindCustomFocus(2),nil,BindResetFocusState(2))
-hs.hotkey.bind(cmdAltCtrl,"f2",BindCustomFocus(3),nil,BindResetFocusState(3))
-hs.hotkey.bind(shiftCmdAltCtrl,"e",BindCustomFocus(4),nil,BindResetFocusState(4))
-hs.hotkey.bind(cmdAltCtrl,"q",BindCustomFocus(5),nil,BindResetFocusState(5))
-hs.hotkey.bind(shiftCmdAltCtrl,"q",BindCustomFocus(6),nil,BindResetFocusState(6))
-hs.hotkey.bind(cmdAltCtrl,"z",LastWindowFocus)
+hs.hotkey.bind(cmdAltCtrl,"escape",LastWindowFocus)
+hs.hotkey.bind(cmdAltCtrl,"f1",BindCustomFocus(1),nil,BindResetFocusState(1))
+hs.hotkey.bind(cmdAltCtrl,"f2",BindCustomFocus(2),nil,BindResetFocusState(2))
+hs.hotkey.bind(cmdAltCtrl,"f3",BindCustomFocus(3),nil,BindResetFocusState(3))
+hs.hotkey.bind(cmdAltCtrl,"f4",BindCustomFocus(4),nil,BindResetFocusState(4))
+hs.hotkey.bind(cmdAltCtrl,"e",BindCustomFocus(5),nil,BindResetFocusState(5))
+hs.hotkey.bind(shiftCmdAltCtrl,"e",BindCustomFocus(6),nil,BindResetFocusState(6))
+hs.hotkey.bind(cmdAltCtrl,"q",BindCustomFocus(7),nil,BindResetFocusState(7))
+hs.hotkey.bind(shiftCmdAltCtrl,"q",BindCustomFocus(8),nil,BindResetFocusState(8))
 
 --Spaces
 hs.hotkey.bind({"ctrl","shift"}, "up", ToggleKillallDock) 
@@ -809,35 +827,23 @@ hs.hotkey.bind({"shift"}, "f12", TimeNotification)
 hs.hotkey.bind(shiftCmdAltCtrl,"f12",Motivation,nil,hs.alert.closeAll)
 hs.hotkey.bind(cmdAltCtrl,"f12",Motivation,nil,hs.alert.closeAll)
 
---Applescript
-hs.hotkey.bind(cmdAltCtrl,"f3",HideUnopenApps)
-hs.hotkey.bind(cmdAltCtrl,"f4",ShowAllFiles)
-
 --Mouse
 hs.hotkey.bind(cmdAltCtrl, "m", MouseHighlight,nil,ResetMouse(false))
 hs.hotkey.bind(shiftCmdAltCtrl, "m", ResetMouse(true))
 
 --Applications 
-hs.hotkey.bind(cmdAltCtrl, "-", BindLaunchApplication("Adobe Illustrator"))
-hs.hotkey.bind(cmdAltCtrl, "=", BindLaunchApplication("Adobe After Effects CS6"))
+hs.hotkey.bind(cmdAltCtrl, "i", BindLaunchApplication("Digital Color Meter"))
 hs.hotkey.bind(cmdAltCtrl, "\\", BindLaunchApplication("Finder"))
-hs.hotkey.bind(cmdAltCtrl, "[", BindLaunchApplication("StoryMill"))
-hs.hotkey.bind(cmdAltCtrl, "]", BindLaunchApplication("SourceTree"))
-hs.hotkey.bind(cmdAltCtrl, ";", BindLaunchApplication("iTunes"))
-hs.hotkey.bind(cmdAltCtrl, "'", BindLaunchApplication("Maya"))
-hs.hotkey.bind(cmdAltCtrl, "y", BindLaunchApplication("/Volumes/Good Times/With Fandagled Technology/With Gizmos/Terminal/youtube-dl.app/"))
+hs.hotkey.bind(cmdAltCtrl, "y", BindLaunchApplication("/Users/Getpeanuts/Library/Services/youtube-dl.app/"))
 
 --Load Multiple Applications
 local HyperPlanTimeSink = "/Volumes/Good Times/Ladybug/HyperPlan/Time Sink/Time Sink.app/"
 local HyperPlanScenes  = "/Volumes/Good Times/Ladybug/HyperPlan/StoryMill/StoryMill.app/"
 local Habitica = "/Applications/Habitica.app/"
-local ApplicationTable = {"Adobe Illustrator","Adobe After Effects CS6","Preview","StoryMill",HyperPlanScenes,"Time Sink",HyperPlanTimeSink,"SourceTree",Habitica,"iTunes","iTunes Alarm","Activity Monitor"}
-hs.hotkey.bind(cmdAltCtrl, "delete", BindLoadMultipleApps(ApplicationTable))
-hs.hotkey.bind(shiftCmdAltCtrl, "delete", AutoSortApps)
 
 --Hints
-hs.hotkey.bind(cmdAltCtrl, "space", hs.hints.windowHints)
-
+hs.hotkey.bind(cmdAltCtrl, "tab", bindWindowHints(nil,nil,true))
+hs.hotkey.bind(cmdAltCtrl, "space", bindWindowHints(nil,nil,true))
 ----------------------------------------------------------
 ----------------------------------------------------------
 ----------------------At Start Up-------------------------
