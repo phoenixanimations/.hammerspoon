@@ -348,12 +348,12 @@ local setAdvanceFocusWindowNumber = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 function AdvanceCustomFocus (i)
 	if not (type(setAdvanceFocusState[i]) == type({})) then
 		setAdvanceFocusState[i] = {}
-		-- setAdvanceFocusRectangle[i] = {}
+		setAdvanceFocusRectangle[i] = {}
 	end
 
 	if setAdvanceFocusState[i][setAdvanceFocusWindowNumber[i]] == nil then
 		setAdvanceFocusState[i][setAdvanceFocusWindowNumber[i]] = Win()
-		-- setAdvanceFocusRectangle[i][setAdvanceFocusWindowNumber[i]] = Win():screen():frame()
+		setAdvanceFocusRectangle[i][setAdvanceFocusWindowNumber[i]] = Win():frame()
 		Alert("Set: " .. tostring("Window ") .. tostring(setAdvanceFocusWindowNumber[i]))
 		setAdvanceFocusWindowNumber[i] = setAdvanceFocusWindowNumber[i] + 1
 		for num=2, #setAdvanceFocusState[i] do
@@ -363,10 +363,8 @@ function AdvanceCustomFocus (i)
 		end
 	else
 		for i2=1,#setAdvanceFocusState[i] do
-			-- local tempFrame = setAdvanceFocusState[i][i2]:screen():frame()
 			setAdvanceFocusState[i][i2]:focus()
-			-- Alert(setAdvanceFocusRectangle[i][i2])
-			-- setAdvanceFocusState[i][i2]:setFrame(setAdvanceFocusRectangle[i][i2])
+			setAdvanceFocusState[i][i2]:setFrame(setAdvanceFocusRectangle[i][i2])
 		end
 	end
 end
@@ -413,6 +411,7 @@ end
 function BindResetAdvanceFocusState (i)
 	return function ()
 		setAdvanceFocusState[i] = nil
+		setAdvanceFocusRectangle[i] = nil
 		setAdvanceFocusWindowNumber[i] = 1
 		Alert ("Advance Custom Focused [" .. tostring(i) .. "] is null")
 	end
@@ -844,17 +843,17 @@ hs.hotkey.bind(cmdAltCtrl,"h",Focus("East"))
 
 --Custom Focus
 hs.hotkey.bind(cmdAltCtrl,"escape",LastWindowFocus)
-hs.hotkey.bind(cmdAltCtrl,"f1",BindAdvanceCustomFocus(1), nil, BindResetAdvanceFocusState())
-hs.hotkey.bind(cmdAltCtrl,"f2",BindAdvanceCustomFocus(2), nil, BindResetAdvanceFocusState())
-hs.hotkey.bind(cmdAltCtrl,"f3",BindAdvanceCustomFocus(3), nil, BindResetAdvanceFocusState())
-hs.hotkey.bind(cmdAltCtrl,"f4",BindAdvanceCustomFocus(4), nil, BindResetAdvanceFocusState())
-hs.hotkey.bind(cmdAltCtrl,"f5",BindAdvanceCustomFocus(5), nil, BindResetAdvanceFocusState())
-hs.hotkey.bind(cmdAltCtrl,"f6",BindAdvanceCustomFocus(6), nil, BindResetAdvanceFocusState())
-hs.hotkey.bind(cmdAltCtrl,"f7",BindAdvanceCustomFocus(7), nil, BindResetAdvanceFocusState())
-hs.hotkey.bind(cmdAltCtrl,"f8",BindAdvanceCustomFocus(8), nil, BindResetAdvanceFocusState())
-hs.hotkey.bind(cmdAltCtrl,"f9",BindAdvanceCustomFocus(9), nil, BindResetAdvanceFocusState())
-hs.hotkey.bind(cmdAltCtrl,"f10",BindAdvanceCustomFocus(10), nil, BindResetAdvanceFocusState())
-hs.hotkey.bind(cmdAltCtrl,"f11",BindAdvanceCustomFocus(11), nil, BindResetAdvanceFocusState())
+hs.hotkey.bind(cmdAltCtrl,"f1",BindAdvanceCustomFocus(1), nil, BindResetAdvanceFocusState(1))
+hs.hotkey.bind(cmdAltCtrl,"f2",BindAdvanceCustomFocus(2), nil, BindResetAdvanceFocusState(2))
+hs.hotkey.bind(cmdAltCtrl,"f3",BindAdvanceCustomFocus(3), nil, BindResetAdvanceFocusState(3))
+hs.hotkey.bind(cmdAltCtrl,"f4",BindAdvanceCustomFocus(4), nil, BindResetAdvanceFocusState(4))
+hs.hotkey.bind(cmdAltCtrl,"f5",BindAdvanceCustomFocus(5), nil, BindResetAdvanceFocusState(5))
+hs.hotkey.bind(cmdAltCtrl,"f6",BindAdvanceCustomFocus(6), nil, BindResetAdvanceFocusState(6))
+hs.hotkey.bind(cmdAltCtrl,"f7",BindAdvanceCustomFocus(7), nil, BindResetAdvanceFocusState(7))
+hs.hotkey.bind(cmdAltCtrl,"f8",BindAdvanceCustomFocus(8), nil, BindResetAdvanceFocusState(8))
+hs.hotkey.bind(cmdAltCtrl,"f9",BindAdvanceCustomFocus(9), nil, BindResetAdvanceFocusState(9))
+hs.hotkey.bind(cmdAltCtrl,"f10",BindAdvanceCustomFocus(10), nil, BindResetAdvanceFocusState(10))
+hs.hotkey.bind(cmdAltCtrl,"f11",BindAdvanceCustomFocus(11), nil, BindResetAdvanceFocusState(11))
 hs.hotkey.bind(shiftCmdAltCtrl,"f1",BindCustomFocus(12),nil,BindResetFocusState(12))
 hs.hotkey.bind(shiftCmdAltCtrl,"f2",BindCustomFocus(13),nil,BindResetFocusState(13))
 hs.hotkey.bind(shiftCmdAltCtrl,"f3",BindCustomFocus(14),nil,BindResetFocusState(14))
