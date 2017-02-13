@@ -881,10 +881,6 @@ hs.hotkey.bind(cmdAltCtrl,"pad1",BindCustomFocus(15),nil,BindResetFocusState(15)
 hs.hotkey.bind(cmdAltCtrl,"pad2",BindCustomFocus(16),nil,BindResetFocusState(16))
 hs.hotkey.bind(cmdAltCtrl,"pad3",BindCustomFocus(17),nil,BindResetFocusState(17))
 hs.hotkey.bind(cmdAltCtrl,"pad0",BindCustomFocus(18),nil,BindResetFocusState(18))
---Spaces
-hs.hotkey.bind({"ctrl","shift"}, "up", ToggleKillallDock) 
-hs.hotkey.bind({"ctrl","shift"},"left", LeftSpace)
-hs.hotkey.bind({"ctrl","shift"},"right", RightSpace)
 
 --Bluetooth
 hs.hotkey.bind(cmdAltCtrl,"b", ToggleBluetooth)
@@ -923,6 +919,6 @@ function Greetings ()
 	end
 end
 
-MultipleNewSpaces(3)
+-- MultipleNewSpaces(3)
 GetBluetooth()
 Greetings()
