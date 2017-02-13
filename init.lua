@@ -241,7 +241,6 @@ function HeliumScreen ()
 		heliumScreenReset = true
 	end
 	hs.mouse.setAbsolutePosition(mouse)
-	Motivation()
 end
 
 function HeliumFollowsMouse ()
@@ -342,6 +341,35 @@ end
 
 local setFocusState = {}
 local lastWindow = {}
+local setAdvanceFocusState = {}
+local setAdvanceFocusRectangle = {}
+local setAdvanceFocusWindowNumber = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
+
+function AdvanceCustomFocus (i)
+	if not (type(setAdvanceFocusState[i]) == type({})) then
+		setAdvanceFocusState[i] = {}
+		-- setAdvanceFocusRectangle[i] = {}
+	end
+
+	if setAdvanceFocusState[i][setAdvanceFocusWindowNumber[i]] == nil then
+		setAdvanceFocusState[i][setAdvanceFocusWindowNumber[i]] = Win()
+		-- setAdvanceFocusRectangle[i][setAdvanceFocusWindowNumber[i]] = Win():screen():frame()
+		Alert("Set: " .. tostring("Window ") .. tostring(setAdvanceFocusWindowNumber[i]))
+		setAdvanceFocusWindowNumber[i] = setAdvanceFocusWindowNumber[i] + 1
+		for num=2, #setAdvanceFocusState[i] do
+			if (setAdvanceFocusState[i][1] == Win()) then
+				setAdvanceFocusWindowNumber[i] = 1
+			end
+		end
+	else
+		for i2=1,#setAdvanceFocusState[i] do
+			-- local tempFrame = setAdvanceFocusState[i][i2]:screen():frame()
+			setAdvanceFocusState[i][i2]:focus()
+			-- Alert(setAdvanceFocusRectangle[i][i2])
+			-- setAdvanceFocusState[i][i2]:setFrame(setAdvanceFocusRectangle[i][i2])
+		end
+	end
+end
 
 function CustomFocus (i) 
 	if setFocusState[i] == nil then 
@@ -369,10 +397,24 @@ function BindCustomFocus (i)
 	end
 end
 
+function BindAdvanceCustomFocus (i)
+	return function ()
+		AdvanceCustomFocus(i)
+	end 
+end
+
 function BindResetFocusState (i)
 	return function ()
 		setFocusState[i] = nil
 		Alert ("Custom Focused [" .. tostring(i) .. "] is null")
+	end
+end
+
+function BindResetAdvanceFocusState (i)
+	return function ()
+		setAdvanceFocusState[i] = nil
+		setAdvanceFocusWindowNumber[i] = 1
+		Alert ("Advance Custom Focused [" .. tostring(i) .. "] is null")
 	end
 end
 
@@ -802,15 +844,44 @@ hs.hotkey.bind(cmdAltCtrl,"h",Focus("East"))
 
 --Custom Focus
 hs.hotkey.bind(cmdAltCtrl,"escape",LastWindowFocus)
-hs.hotkey.bind(cmdAltCtrl,"f1",BindCustomFocus(1),nil,BindResetFocusState(1))
-hs.hotkey.bind(cmdAltCtrl,"f2",BindCustomFocus(2),nil,BindResetFocusState(2))
-hs.hotkey.bind(cmdAltCtrl,"f3",BindCustomFocus(3),nil,BindResetFocusState(3))
-hs.hotkey.bind(cmdAltCtrl,"f4",BindCustomFocus(4),nil,BindResetFocusState(4))
+hs.hotkey.bind(cmdAltCtrl,"f1",BindAdvanceCustomFocus(1), nil, BindResetAdvanceFocusState())
+hs.hotkey.bind(cmdAltCtrl,"f2",BindAdvanceCustomFocus(2), nil, BindResetAdvanceFocusState())
+hs.hotkey.bind(cmdAltCtrl,"f3",BindAdvanceCustomFocus(3), nil, BindResetAdvanceFocusState())
+hs.hotkey.bind(cmdAltCtrl,"f4",BindAdvanceCustomFocus(4), nil, BindResetAdvanceFocusState())
+hs.hotkey.bind(cmdAltCtrl,"f5",BindAdvanceCustomFocus(5), nil, BindResetAdvanceFocusState())
+hs.hotkey.bind(cmdAltCtrl,"f6",BindAdvanceCustomFocus(6), nil, BindResetAdvanceFocusState())
+hs.hotkey.bind(cmdAltCtrl,"f7",BindAdvanceCustomFocus(7), nil, BindResetAdvanceFocusState())
+hs.hotkey.bind(cmdAltCtrl,"f8",BindAdvanceCustomFocus(8), nil, BindResetAdvanceFocusState())
+hs.hotkey.bind(cmdAltCtrl,"f9",BindAdvanceCustomFocus(9), nil, BindResetAdvanceFocusState())
+hs.hotkey.bind(cmdAltCtrl,"f10",BindAdvanceCustomFocus(10), nil, BindResetAdvanceFocusState())
+hs.hotkey.bind(cmdAltCtrl,"f11",BindAdvanceCustomFocus(11), nil, BindResetAdvanceFocusState())
+hs.hotkey.bind(shiftCmdAltCtrl,"f1",BindCustomFocus(12),nil,BindResetFocusState(12))
+hs.hotkey.bind(shiftCmdAltCtrl,"f2",BindCustomFocus(13),nil,BindResetFocusState(13))
+hs.hotkey.bind(shiftCmdAltCtrl,"f3",BindCustomFocus(14),nil,BindResetFocusState(14))
+hs.hotkey.bind(shiftCmdAltCtrl,"f4",BindCustomFocus(15),nil,BindResetFocusState(15))
+hs.hotkey.bind(shiftCmdAltCtrl,"f5",BindCustomFocus(16),nil,BindResetFocusState(16))
+hs.hotkey.bind(shiftCmdAltCtrl,"f6",BindCustomFocus(17),nil,BindResetFocusState(17))
+hs.hotkey.bind(shiftCmdAltCtrl,"f7",BindCustomFocus(18),nil,BindResetFocusState(18))
+hs.hotkey.bind(shiftCmdAltCtrl,"f8",BindCustomFocus(19),nil,BindResetFocusState(19))
+hs.hotkey.bind(shiftCmdAltCtrl,"f9",BindCustomFocus(20),nil,BindResetFocusState(20))
+hs.hotkey.bind(shiftCmdAltCtrl,"f10",BindCustomFocus(21),nil,BindResetFocusState(21))
+hs.hotkey.bind(shiftCmdAltCtrl,"f11",BindCustomFocus(22),nil,BindResetFocusState(22))
+
 hs.hotkey.bind(cmdAltCtrl,"e",BindCustomFocus(5),nil,BindResetFocusState(5))
 hs.hotkey.bind(shiftCmdAltCtrl,"e",BindCustomFocus(6),nil,BindResetFocusState(6))
 hs.hotkey.bind(cmdAltCtrl,"q",BindCustomFocus(7),nil,BindResetFocusState(7))
 hs.hotkey.bind(shiftCmdAltCtrl,"q",BindCustomFocus(8),nil,BindResetFocusState(8))
 
+hs.hotkey.bind(cmdAltCtrl,"pad7",BindCustomFocus(9),nil,BindResetFocusState(9))
+hs.hotkey.bind(cmdAltCtrl,"pad8",BindCustomFocus(10),nil,BindResetFocusState(10))
+hs.hotkey.bind(cmdAltCtrl,"pad9",BindCustomFocus(11),nil,BindResetFocusState(11))
+hs.hotkey.bind(cmdAltCtrl,"pad4",BindCustomFocus(12),nil,BindResetFocusState(12))
+hs.hotkey.bind(cmdAltCtrl,"pad5",BindCustomFocus(13),nil,BindResetFocusState(13))
+hs.hotkey.bind(cmdAltCtrl,"pad6",BindCustomFocus(14),nil,BindResetFocusState(14))
+hs.hotkey.bind(cmdAltCtrl,"pad1",BindCustomFocus(15),nil,BindResetFocusState(15))
+hs.hotkey.bind(cmdAltCtrl,"pad2",BindCustomFocus(16),nil,BindResetFocusState(16))
+hs.hotkey.bind(cmdAltCtrl,"pad3",BindCustomFocus(17),nil,BindResetFocusState(17))
+hs.hotkey.bind(cmdAltCtrl,"pad0",BindCustomFocus(18),nil,BindResetFocusState(18))
 --Spaces
 hs.hotkey.bind({"ctrl","shift"}, "up", ToggleKillallDock) 
 hs.hotkey.bind({"ctrl","shift"},"left", LeftSpace)
@@ -824,8 +895,8 @@ hs.hotkey.bind({}, "f12", BatteryNotification)
 hs.hotkey.bind({"shift"}, "f12", TimeNotification)
 
 --Motivation
-hs.hotkey.bind(shiftCmdAltCtrl,"f12",Motivation,nil,hs.alert.closeAll)
-hs.hotkey.bind(cmdAltCtrl,"f12",Motivation,nil,hs.alert.closeAll)
+hs.hotkey.bind(shiftCmdAltCtrl,"f12",HeliumFollowsMouse,nil,hs.alert.closeAll)
+hs.hotkey.bind(cmdAltCtrl,"f12",HeliumScreen,nil,hs.alert.closeAll)
 
 --Mouse
 hs.hotkey.bind(cmdAltCtrl, "m", MouseHighlight,nil,ResetMouse(false))
@@ -835,11 +906,6 @@ hs.hotkey.bind(shiftCmdAltCtrl, "m", ResetMouse(true))
 hs.hotkey.bind(cmdAltCtrl, "i", BindLaunchApplication("Digital Color Meter"))
 hs.hotkey.bind(cmdAltCtrl, "\\", BindLaunchApplication("Finder"))
 hs.hotkey.bind(cmdAltCtrl, "y", BindLaunchApplication("/Users/Getpeanuts/Library/Services/youtube-dl.app/"))
-
---Load Multiple Applications
-local HyperPlanTimeSink = "/Volumes/Good Times/Ladybug/HyperPlan/Time Sink/Time Sink.app/"
-local HyperPlanScenes  = "/Volumes/Good Times/Ladybug/HyperPlan/StoryMill/StoryMill.app/"
-local Habitica = "/Applications/Habitica.app/"
 
 --Hints
 hs.hotkey.bind(cmdAltCtrl, "tab", bindWindowHints(nil,nil,true))
