@@ -144,7 +144,19 @@ function SquareWindow (size)
 	Win():centerOnScreen()
 end
 
+local ResetFullScreenFrame = nil
+local ResetFullScreenWindow = nil
 function FullScreen ()
+	if (Win():frame().w >= ScreenFrame().w) and (Win():frame().h == ScreenFrame().h) and not (ResetFullScreenFrame == nil) and (ResetFullScreenWindow == Win()) then 
+		Win():setFrame(ResetFullScreenFrame)
+		ResetFullScreenFrame = nil
+		ResetFullScreenWindow = nil
+		return
+	else
+		ResetFullScreenWindow = Win()
+		ResetFullScreenFrame = Win():frame()
+	end
+
 	if Win():screen() == hs.screen.primaryScreen() then 
 		Adjust (-4,0,ScreenFrame().w + 4,ScreenFrame().h)
 	else 
@@ -190,20 +202,29 @@ end
 ----------------------------------------------------------
 local HeliumState = 0
 local HeliumDebugState = false
-
+local HeliumWidth = 0
+local HeliumHeight = 0
 function HeliumAlert (message, time)
 	if HeliumDebugState then Alert(message,time) end
 end
 
+function HeliumWidthHeight ()
+	if HeliumState < 5 then 
+		HeliumWidth = 60
+		HeliumHeight = 50
+	else
+		HeliumWidth = 200
+		HeliumHeight = 190
+	end
+end
+
 function HeliumScroll ()
-	HeliumState = HeliumState + 1
 	MouseWheel(-1000,-1000)
 	if HeliumState == 1 then MouseWheel(568,406,true) -- Fishing
 	elseif HeliumState == 2 then MouseWheel(568,420,true) -- Woodcutting
 	elseif HeliumState == 3 then MouseWheel(454,68,true) -- Walking
 	elseif HeliumState == 4 then MouseWheel(361,68,true) -- Sailing
-	elseif HeliumState == 5 then 
-		Adjust (nil,nil,200,190)
+	elseif HeliumState == 5 then -- Combat
 		MouseWheel(202,122,true)
 	else
 		HeliumState = 0
@@ -218,16 +239,15 @@ function MouseFollowsHelium ()
 	
 	point["x"] = Win():frame().x + 20
 	point["y"] = Win():frame().y + 30
-	hs.mouse.set(point)
+	hs.mouse.setAbsolutePosition(point)
 end
 
 -- Bind:
-local resetFrame = {}
+local resetFrame = nil
 local previousWindow
 local heliumScreenReset = true
 function HeliumScreen ()
 	LaunchApplication ("Helium")
-	local windowFrame = Win():frame()
 	local mouse = hs.mouse.getAbsolutePosition()
 	if heliumScreenReset then
 		resetFrame = Win():frame()
@@ -235,7 +255,6 @@ function HeliumScreen ()
 		heliumScreenReset = false
 	else
 		Win():setFrame(resetFrame) 
-		HeliumState = HeliumState - 1
 		MouseFollowsHelium ()
 		HeliumScroll ()
 		heliumScreenReset = true
@@ -246,7 +265,9 @@ end
 function HeliumFollowsMouse ()
 	LaunchApplication ("Helium")
 	local point = hs.mouse.getAbsolutePosition()
-	Adjust (point.x - 30 - ScreenFrame().x,point.y - 30 - ScreenFrame().y,60,50)
+	HeliumState = HeliumState + 1
+	HeliumWidthHeight()
+	Adjust (point.x - 30 - ScreenFrame().x,point.y - 30 - ScreenFrame().y,HeliumWidth,HeliumHeight)
 	HeliumScroll ()
 end
 
@@ -319,22 +340,22 @@ end
 ----------------------------------------------------------
 ------------------------Focus-----------------------------
 ----------------------------------------------------------
-function Focus (direction)
+function Focus (direction, candidate, frontmost, strict)
 	return function ()
 		if direction == "North" then
-			hs.window.filter.defaultCurrentSpace:focusWindowNorth(nil,true,true)
+			hs.window.filter.defaultCurrentSpace:focusWindowNorth(candidate,frontmost,strict)
 		end
 
 		if direction == "South" then
-			hs.window.filter.defaultCurrentSpace:focusWindowSouth(nil,true,true)
+			hs.window.filter.defaultCurrentSpace:focusWindowSouth(candidate,frontmost,strict)
 		end
 
 		if direction == "East" then
-			hs.window.filter.defaultCurrentSpace:focusWindowEast(nil,true,true)
+			hs.window.filter.defaultCurrentSpace:focusWindowEast(candidate,frontmost,strict)
 		end
 		
 		if direction == "West" then
-			hs.window.filter.defaultCurrentSpace:focusWindowWest(nil,true,true)
+			hs.window.filter.defaultCurrentSpace:focusWindowWest(candidate,frontmost,strict)
 		end
 	end
 end
@@ -379,6 +400,12 @@ function CustomFocus (i)
 	if not (Win() == setFocusState[i]) then 
 		lastWindow[i] = Win() 
 		setFocusState[i]:focus()
+
+		if not (Win() == setFocusState[i]) then
+			lastWindow[i] = nil
+			setFocusState[i] = nil
+			Alert ("Custom Focused [" .. tostring(i) .. "] is null")
+		end
 		
 	elseif Win() == setFocusState[i] then 
 		lastWindow[i]:focus()
@@ -829,42 +856,59 @@ hs.hotkey.bind(cmdAltCtrl,"s",Nudge(0,20),nil,Nudge(0,100))
 hs.hotkey.bind(cmdAltCtrl,"a",Nudge(-20,0),nil,Nudge(-100,0))
 hs.hotkey.bind(cmdAltCtrl,"d",Nudge(20,0),nil,Nudge(100,0))
 
+hs.hotkey.bind(cmdAltCtrl,"t",Nudge(0,-1),nil,Nudge(0,-5))
+hs.hotkey.bind(cmdAltCtrl,"g",Nudge(0,1),nil,Nudge(0,5))
+hs.hotkey.bind(cmdAltCtrl,"f",Nudge(-1,0),nil,Nudge(-5,0))
+hs.hotkey.bind(cmdAltCtrl,"h",Nudge(1,0),nil,Nudge(5,0))
+
 --Resize
 hs.hotkey.bind(shiftCmdAltCtrl,"w",Resize(0,-10),nil,Resize(0,-50))
 hs.hotkey.bind(shiftCmdAltCtrl,"s",Resize(0,10),nil,Resize(0,50))
 hs.hotkey.bind(shiftCmdAltCtrl,"a",Resize(-10,0),nil,Resize(-50,0))
 hs.hotkey.bind(shiftCmdAltCtrl,"d",Resize(10,0),nil,Resize(50,0))
 
+hs.hotkey.bind(shiftCmdAltCtrl,"t",Resize(0,-1),nil,Resize(0,-5))
+hs.hotkey.bind(shiftCmdAltCtrl,"g",Resize(0,1),nil,Resize(0,5))
+hs.hotkey.bind(shiftCmdAltCtrl,"f",Resize(-1,0),nil,Resize(-5,0))
+hs.hotkey.bind(shiftCmdAltCtrl,"h",Resize(1,0),nil,Resize(5,0))
+
 --Focus
-hs.hotkey.bind(cmdAltCtrl,"t",Focus("North"))
-hs.hotkey.bind(cmdAltCtrl,"g",Focus("South"))
-hs.hotkey.bind(cmdAltCtrl,"f",Focus("West"))
-hs.hotkey.bind(cmdAltCtrl,"h",Focus("East"))
+hs.hotkey.bind(cmdAltCtrl,"i",Focus("North", nil, true, true))
+hs.hotkey.bind(cmdAltCtrl,"k",Focus("South", nil, true, true))
+hs.hotkey.bind(cmdAltCtrl,"j",Focus("West", nil, true, true))
+hs.hotkey.bind(cmdAltCtrl,"l",Focus("East", nil, true, true))
+
+hs.hotkey.bind(shiftCmdAltCtrl,"i",Focus("North", nil, false, false))
+hs.hotkey.bind(shiftCmdAltCtrl,"k",Focus("South", nil, false, false))
+hs.hotkey.bind(shiftCmdAltCtrl,"j",Focus("West", nil, false, false))
+hs.hotkey.bind(shiftCmdAltCtrl,"l",Focus("East", nil, false, false))
 
 --Custom Focus
-hs.hotkey.bind(cmdAltCtrl,"escape",LastWindowFocus)
-hs.hotkey.bind(cmdAltCtrl,"f1",BindAdvanceCustomFocus(1), nil, BindResetAdvanceFocusState(1))
-hs.hotkey.bind(cmdAltCtrl,"f2",BindAdvanceCustomFocus(2), nil, BindResetAdvanceFocusState(2))
-hs.hotkey.bind(cmdAltCtrl,"f3",BindAdvanceCustomFocus(3), nil, BindResetAdvanceFocusState(3))
-hs.hotkey.bind(cmdAltCtrl,"f4",BindAdvanceCustomFocus(4), nil, BindResetAdvanceFocusState(4))
-hs.hotkey.bind(cmdAltCtrl,"f5",BindAdvanceCustomFocus(5), nil, BindResetAdvanceFocusState(5))
-hs.hotkey.bind(cmdAltCtrl,"f6",BindAdvanceCustomFocus(6), nil, BindResetAdvanceFocusState(6))
-hs.hotkey.bind(cmdAltCtrl,"f7",BindAdvanceCustomFocus(7), nil, BindResetAdvanceFocusState(7))
-hs.hotkey.bind(cmdAltCtrl,"f8",BindAdvanceCustomFocus(8), nil, BindResetAdvanceFocusState(8))
-hs.hotkey.bind(cmdAltCtrl,"f9",BindAdvanceCustomFocus(9), nil, BindResetAdvanceFocusState(9))
-hs.hotkey.bind(cmdAltCtrl,"f10",BindAdvanceCustomFocus(10), nil, BindResetAdvanceFocusState(10))
-hs.hotkey.bind(cmdAltCtrl,"f11",BindAdvanceCustomFocus(11), nil, BindResetAdvanceFocusState(11))
-hs.hotkey.bind(shiftCmdAltCtrl,"f1",BindCustomFocus(12),nil,BindResetFocusState(12))
-hs.hotkey.bind(shiftCmdAltCtrl,"f2",BindCustomFocus(13),nil,BindResetFocusState(13))
-hs.hotkey.bind(shiftCmdAltCtrl,"f3",BindCustomFocus(14),nil,BindResetFocusState(14))
-hs.hotkey.bind(shiftCmdAltCtrl,"f4",BindCustomFocus(15),nil,BindResetFocusState(15))
-hs.hotkey.bind(shiftCmdAltCtrl,"f5",BindCustomFocus(16),nil,BindResetFocusState(16))
-hs.hotkey.bind(shiftCmdAltCtrl,"f6",BindCustomFocus(17),nil,BindResetFocusState(17))
-hs.hotkey.bind(shiftCmdAltCtrl,"f7",BindCustomFocus(18),nil,BindResetFocusState(18))
-hs.hotkey.bind(shiftCmdAltCtrl,"f8",BindCustomFocus(19),nil,BindResetFocusState(19))
-hs.hotkey.bind(shiftCmdAltCtrl,"f9",BindCustomFocus(20),nil,BindResetFocusState(20))
-hs.hotkey.bind(shiftCmdAltCtrl,"f10",BindCustomFocus(21),nil,BindResetFocusState(21))
-hs.hotkey.bind(shiftCmdAltCtrl,"f11",BindCustomFocus(22),nil,BindResetFocusState(22))
+hs.hotkey.bind(cmdAltCtrl,"f1",BindAdvanceCustomFocus(1))
+hs.hotkey.bind(cmdAltCtrl,"f2",BindAdvanceCustomFocus(2))
+hs.hotkey.bind(cmdAltCtrl,"f3",BindAdvanceCustomFocus(3))
+hs.hotkey.bind(cmdAltCtrl,"f4",BindAdvanceCustomFocus(4))
+hs.hotkey.bind(cmdAltCtrl,"f5",BindAdvanceCustomFocus(5))
+hs.hotkey.bind(cmdAltCtrl,"f6",BindAdvanceCustomFocus(6))
+hs.hotkey.bind(cmdAltCtrl,"f7",BindAdvanceCustomFocus(7))
+hs.hotkey.bind(cmdAltCtrl,"f8",BindAdvanceCustomFocus(8))
+hs.hotkey.bind(cmdAltCtrl,"f9",BindAdvanceCustomFocus(9))
+hs.hotkey.bind(cmdAltCtrl,"f10",BindAdvanceCustomFocus(10))
+hs.hotkey.bind(cmdAltCtrl,"f11",BindAdvanceCustomFocus(11))
+
+hs.hotkey.bind(shiftCmdAltCtrl,"f1",BindResetAdvanceFocusState(1))
+hs.hotkey.bind(shiftCmdAltCtrl,"f2",BindResetAdvanceFocusState(2))
+hs.hotkey.bind(shiftCmdAltCtrl,"f3",BindResetAdvanceFocusState(3))
+hs.hotkey.bind(shiftCmdAltCtrl,"f4",BindResetAdvanceFocusState(4))
+hs.hotkey.bind(shiftCmdAltCtrl,"f5",BindResetAdvanceFocusState(5))
+hs.hotkey.bind(shiftCmdAltCtrl,"f6",BindResetAdvanceFocusState(6))
+hs.hotkey.bind(shiftCmdAltCtrl,"f7",BindResetAdvanceFocusState(7))
+hs.hotkey.bind(shiftCmdAltCtrl,"f8",BindResetAdvanceFocusState(8))
+hs.hotkey.bind(shiftCmdAltCtrl,"f9",BindResetAdvanceFocusState(9))
+hs.hotkey.bind(shiftCmdAltCtrl,"f10",BindResetAdvanceFocusState(10))
+hs.hotkey.bind(shiftCmdAltCtrl,"f11",BindResetAdvanceFocusState(11))
+
+hs.hotkey.bind(cmdAltCtrl,"f12",LastWindowFocus)
 
 hs.hotkey.bind(cmdAltCtrl,"e",BindCustomFocus(5),nil,BindResetFocusState(5))
 hs.hotkey.bind(shiftCmdAltCtrl,"e",BindCustomFocus(6),nil,BindResetFocusState(6))
@@ -890,20 +934,19 @@ hs.hotkey.bind({}, "f12", BatteryNotification)
 hs.hotkey.bind({"shift"}, "f12", TimeNotification)
 
 --Motivation
-hs.hotkey.bind(shiftCmdAltCtrl,"f12",HeliumFollowsMouse,nil,hs.alert.closeAll)
-hs.hotkey.bind(cmdAltCtrl,"f12",HeliumScreen,nil,hs.alert.closeAll)
+hs.hotkey.bind(shiftCmdAltCtrl,"escape",HeliumFollowsMouse,nil,hs.alert.closeAll)
+hs.hotkey.bind(cmdAltCtrl,"escape",HeliumScreen,nil,hs.alert.closeAll)
 
 --Mouse
 hs.hotkey.bind(cmdAltCtrl, "m", MouseHighlight,nil,ResetMouse(false))
 hs.hotkey.bind(shiftCmdAltCtrl, "m", ResetMouse(true))
 
 --Applications 
-hs.hotkey.bind(cmdAltCtrl, "i", BindLaunchApplication("Digital Color Meter"))
+hs.hotkey.bind(cmdAltCtrl, "p", BindLaunchApplication("Digital Color Meter"))
 hs.hotkey.bind(cmdAltCtrl, "\\", BindLaunchApplication("Finder"))
 hs.hotkey.bind(cmdAltCtrl, "y", BindLaunchApplication("/Users/Getpeanuts/Library/Services/youtube-dl.app/"))
 
 --Hints
-hs.hotkey.bind(cmdAltCtrl, "tab", bindWindowHints(nil,nil,true))
 hs.hotkey.bind(cmdAltCtrl, "space", bindWindowHints(nil,nil,true))
 ----------------------------------------------------------
 ----------------------------------------------------------
