@@ -21,6 +21,7 @@ bluetooth = require("hs._asm.undocumented.bluetooth")
 ----------------------------------------------------------
 hs.window.animationDuration = 0
 hs.window.setFrameCorrectness = false
+hs.hints.showTitleThresh = 10
 hs.hints.hintChars = {"1", "2", "3", "Q", "W", "E", "A", "S", "D", "Z", "X", "C", "R", "T", "Y", "F", "G", "H", "V", "B", "N", "U", "J", "M", "I", "K"}
 
 ----------------------------------------------------------
@@ -128,9 +129,15 @@ function Adjust (x,y,w,h)
 	if w == nil then w = Win():frame().w end
 	if h == nil then h = Win():frame().h end
 
-	frame.x = x + ScreenFrame().x
+	if x == 0 and Win():screen() == hs.screen.primaryScreen() then 
+		frame.x = x + ScreenFrame().x - 4
+		frame.w = w + 4
+	else
+		frame.x = x + ScreenFrame().x
+		frame.w = w
+	end
+
 	frame.y = y + ScreenFrame().y
-	frame.w = w
 	frame.h = h
 
 	Win():setFrame(frame)
@@ -155,12 +162,7 @@ function FullScreen ()
 	else
 		ResetFullScreenWindow = Win()
 		ResetFullScreenFrame = Win():frame()
-	end
-
-	if Win():screen() == hs.screen.primaryScreen() then 
-		Adjust (-4,0,ScreenFrame().w + 4,ScreenFrame().h)
-	else 
-		Adjust (0,0,ScreenFrame().w,ScreenFrame().h)
+		Adjust(0,0,ScreenFrame().w, ScreenFrame().h)
 	end
 end
 
