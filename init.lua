@@ -129,7 +129,7 @@ function Adjust (x,y,w,h)
 	if w == nil then w = Win():frame().w end
 	if h == nil then h = Win():frame().h end
 
-	if x == 0 and Win():screen() == hs.screen.primaryScreen() then 
+	if x == 0 and not (Win():screen():fullFrame() == Win():screen():frame()) then  
 		frame.x = x + ScreenFrame().x - 4
 		frame.w = w + 4
 	else
@@ -246,22 +246,27 @@ end
 
 -- Bind:
 local resetFrame = nil
-local previousWindow
+local heliumPreviousWindow = nil
 local heliumScreenReset = true
+
 function HeliumScreen ()
-	LaunchApplication ("Helium")
-	local mouse = hs.mouse.getAbsolutePosition()
-	if heliumScreenReset then
-		resetFrame = Win():frame()
-		FullScreen()
-		heliumScreenReset = false
-	else
-		Win():setFrame(resetFrame) 
-		MouseFollowsHelium ()
-		HeliumScroll ()
-		heliumScreenReset = true
-	end
-	hs.mouse.setAbsolutePosition(mouse)
+   if Win():application():name() ~= "Helium" then
+      heliumPreviousWindow = Win()
+   end
+   LaunchApplication ("Helium")
+   local mouse = hs.mouse.getAbsolutePosition()
+   if heliumScreenReset then
+      resetFrame = Win():frame()
+      FullScreen()
+      heliumScreenReset = false
+   else
+      Win():setFrame(resetFrame) 
+      MouseFollowsHelium ()
+      HeliumScroll ()
+      heliumScreenReset = true
+      --heliumPreviousWindow:focus()      
+   end
+   hs.mouse.setAbsolutePosition(mouse)
 end
 
 function HeliumFollowsMouse ()
@@ -269,7 +274,7 @@ function HeliumFollowsMouse ()
 	local point = hs.mouse.getAbsolutePosition()
 	HeliumState = HeliumState + 1
 	HeliumWidthHeight()
-	Adjust (point.x - 30 - ScreenFrame().x,point.y - 30 - ScreenFrame().y,HeliumWidth,HeliumHeight)
+	Adjust (point.x - 30 - ScreenFrame().x,point.y - 30 - ScreenFrame().y, HeliumWidth, HeliumHeight)
 	HeliumScroll ()
 end
 
@@ -926,7 +931,6 @@ hs.hotkey.bind(cmdAltCtrl,"pad6",BindCustomFocus(14),nil,BindResetFocusState(14)
 hs.hotkey.bind(cmdAltCtrl,"pad1",BindCustomFocus(15),nil,BindResetFocusState(15))
 hs.hotkey.bind(cmdAltCtrl,"pad2",BindCustomFocus(16),nil,BindResetFocusState(16))
 hs.hotkey.bind(cmdAltCtrl,"pad3",BindCustomFocus(17),nil,BindResetFocusState(17))
-hs.hotkey.bind(cmdAltCtrl,"pad0",BindCustomFocus(18),nil,BindResetFocusState(18))
 
 --Bluetooth
 hs.hotkey.bind(cmdAltCtrl,"b", ToggleBluetooth)
@@ -936,8 +940,8 @@ hs.hotkey.bind({}, "f12", BatteryNotification)
 hs.hotkey.bind({"shift"}, "f12", TimeNotification)
 
 --Motivation
-hs.hotkey.bind(shiftCmdAltCtrl,"escape",HeliumFollowsMouse,nil,hs.alert.closeAll)
-hs.hotkey.bind(cmdAltCtrl,"escape",HeliumScreen,nil,hs.alert.closeAll)
+hs.hotkey.bind(shiftCmdAltCtrl,"escape",HeliumFollowsMouse,nil)
+hs.hotkey.bind(cmdAltCtrl,"escape",HeliumScreen)
 
 --Mouse
 hs.hotkey.bind(cmdAltCtrl, "m", MouseHighlight,nil,ResetMouse(false))

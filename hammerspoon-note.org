@@ -1,0 +1,1 @@
++ [ ] Fix the helium so that it focuses on the last app without having to click on it. 
