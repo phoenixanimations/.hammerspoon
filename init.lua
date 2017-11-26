@@ -22,6 +22,7 @@ bluetooth = require("hs._asm.undocumented.bluetooth")
 hs.window.animationDuration = 0
 hs.window.setFrameCorrectness = false
 hs.hints.showTitleThresh = 10
+hs.hints.titleMaxSize = 42
 hs.hints.hintChars = {"1", "2", "3", "Q", "W", "E", "A", "S", "D", "Z", "X", "C", "R", "T", "Y", "F", "G", "H", "V", "B", "N", "U", "J", "M", "I", "K"}
 
 ----------------------------------------------------------
@@ -835,6 +836,10 @@ end
 local shiftCmdAltCtrl = {"cmd","alt","ctrl","shift"}
 local cmdAltCtrl = {"cmd","alt","ctrl"}
 
+-- local cmdAltCtrl = {"fn"}
+-- local shiftCmdAltCtrl = {"fn","shift"}
+
+
 --Hammerspoon
 hs.hotkey.bind(cmdAltCtrl,"r",hs.reload)
 hs.hotkey.bind(shiftCmdAltCtrl,"r",Console)
@@ -931,6 +936,9 @@ hs.hotkey.bind(cmdAltCtrl,"pad6",BindCustomFocus(14),nil,BindResetFocusState(14)
 hs.hotkey.bind(cmdAltCtrl,"pad1",BindCustomFocus(15),nil,BindResetFocusState(15))
 hs.hotkey.bind(cmdAltCtrl,"pad2",BindCustomFocus(16),nil,BindResetFocusState(16))
 hs.hotkey.bind(cmdAltCtrl,"pad3",BindCustomFocus(17),nil,BindResetFocusState(17))
+
+--Open Emacs
+hs.hotkey.bind(cmdAltCtrl,"return", BindLaunchApplication("/usr/local/Cellar/emacs-plus/Emacs.app"))
 
 --Bluetooth
 hs.hotkey.bind(cmdAltCtrl,"b", ToggleBluetooth)
